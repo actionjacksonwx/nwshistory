@@ -198,6 +198,7 @@
 
     let stationData = [];
     let activeGroupId = null;
+    let markersMap = {}; // Maps station id to its leaflet marker instance
 
     // Initialize Map centered over Lower 48 States (CONUS)
     const map = L.map('map', { zoomControl: true }).setView(CONUS_CENTER, CONUS_ZOOM);
@@ -304,6 +305,7 @@
     // Render Map Logic
     function renderMap() {
       markerLayerGroup.clearLayers();
+      markersMap = {};
       const currentYear = parseInt(document.getElementById('yearSlider').value);
 
       stationData.forEach(station => {
@@ -312,19 +314,21 @@
         const formattedStart = formatDate(station.startDate);
         const formattedEnd = station.endDate === 'present' ? 'present' : formatDate(station.endDate);
         const notesSection = station.notes ? `<div style="font-size:0.8rem; margin-top:4px; color:var(--text-muted); font-style:italic;">${station.notes}</div>` : '';
+        const addressSection = station.address ? `<div>${station.address}</div>` : '';
 
         if (activeGroupId !== null) {
           // Locked / Freeze Mode for Selected Group
           if (station.groupId === activeGroupId) {
             const icon = createShapeIcon(typeInfo.color, station.precision, true);
             const marker = L.marker([station.lat, station.lon], { icon }).addTo(markerLayerGroup);
+            markersMap[station.id] = marker;
             
             marker.bindPopup(`
               <div class="popup-title">${station.name}</div>
               <div class="popup-type">${station.type}</div>
               <div class="popup-precision">Precision: ${station.precision.toUpperCase()}</div>
               <div class="popup-dates">Active: ${formattedStart} &ndash; ${formattedEnd}</div>
-              <div>${station.address}</div>
+              ${addressSection}
               ${notesSection}
             `);
           }
@@ -336,13 +340,14 @@
           if (currentYear >= startYr && currentYear <= endYr) {
             const icon = createShapeIcon(typeInfo.color, station.precision, false);
             const marker = L.marker([station.lat, station.lon], { icon }).addTo(markerLayerGroup);
+            markersMap[station.id] = marker;
             
             marker.bindPopup(`
               <div class="popup-title">${station.name}</div>
               <div class="popup-type">${station.type}</div>
               <div class="popup-precision">Precision: ${station.precision.toUpperCase()}</div>
               <div class="popup-dates">Active: ${formattedStart} &ndash; ${formattedEnd}</div>
-              <p style="font-size:0.8rem; margin-bottom:4px;">${station.address}</p>
+              <div style="font-size:0.8rem; margin-bottom:4px;">${station.address}</div>
               ${notesSection}
               <button class="lineage-btn" style="margin-top:8px;" onclick="lockGroupLineage('${station.groupId}')">
                 🔒 View Full Lineage
@@ -352,6 +357,16 @@
         }
       });
     }
+
+    // Function to pan/zoom to a specific station from the sidebar
+    window.focusStation = function(stationId) {
+      const marker = markersMap[stationId];
+      const station = stationData.find(s => s.id === stationId);
+      if (marker && station) {
+        map.flyTo([station.lat, station.lon], 13, { duration: 1.0 });
+        marker.openPopup();
+      }
+    };
 
     // Lineage Lock & Auto-Zoom Handler
     window.lockGroupLineage = function(groupId) {
@@ -392,12 +407,14 @@
         const fStart = formatDate(s.startDate);
         const fEnd = s.endDate === 'present' ? 'present' : formatDate(s.endDate);
         const sideNotes = s.notes ? `<div style="font-size:0.75rem; margin-top:2px; font-style:italic; color:var(--text-muted);">${s.notes}</div>` : '';
+        const sideAddress = s.address ? `<div style="font-size:0.75rem; color:var(--text);">📍 ${s.address}</div>` : '';
+        
         html += `
-          <div style="background:#121824; padding:8px; border-radius:4px; margin-bottom:8px; border-left:4px solid ${typeInfo.color}">
+          <div onclick="focusStation('${s.id}')" style="background:#121824; padding:8px; border-radius:4px; margin-bottom:8px; border-left:4px solid ${typeInfo.color}; cursor:pointer; transition: background 0.2s;" onmouseover="this.style.background='#273248'" onmouseout="this.style.background='#121824'">
             <div style="font-weight:bold; color:#fff;">${s.name}</div>
             <div style="font-size:0.75rem; color:${typeInfo.color};">${s.type} (${s.precision})</div>
             <div style="font-size:0.75rem; color:var(--text-muted);">${fStart} &ndash; ${fEnd}</div>
-            <div style="font-size:0.75rem; color:var(--text);">📍 ${s.address}</div>
+            ${sideAddress}
             ${sideNotes}
           </div>
         `;
