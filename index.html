@@ -39,13 +39,13 @@
       align-items: center;
       gap: 15px;
       flex-grow: 1;
-      max-width: 650px;
+      max-width: 600px;
       margin: 0 20px;
     }
     .year-display {
       font-size: 1.4rem;
       font-weight: 700;
-      font-mono: monospace;
+      font-family: monospace;
       min-width: 65px;
       color: var(--accent);
     }
@@ -54,24 +54,14 @@
       accent-color: var(--accent);
       cursor: pointer;
     }
-    .play-btn {
-      background: var(--accent);
-      color: white;
-      border: none;
-      padding: 6px 14px;
-      border-radius: 4px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .play-btn:hover { opacity: 0.9; }
 
     /* Main Container */
-    .main-content { display: flex; flex-grow: 1; relative; height: calc(100vh - 61px); }
+    .main-content { display: flex; flex-grow: 1; position: relative; height: calc(100vh - 61px); }
     #map { flex-grow: 1; background: #0f172a; height: 100%; }
 
     /* Sidebar / Overlay UI */
     .sidebar {
-      width: 320px;
+      width: 340px;
       background: var(--panel-bg);
       border-left: 1px solid var(--border);
       display: flex;
@@ -82,9 +72,23 @@
     .sidebar-section h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 10px; }
 
     .filter-list { list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; }
-    .filter-item { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+    .filter-item { display: flex; align-items: center; justify-content: space-between; }
     .filter-label { display: flex; align-items: center; gap: 8px; }
-    .color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+    
+    /* Shape Legend indicators */
+    .shape-icon { width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; }
+
+    /* Dropdown Styling */
+    select.group-select {
+      width: 100%;
+      background: var(--bg-dark);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
 
     /* Freeze Mode Banner */
     .freeze-banner {
@@ -99,16 +103,16 @@
     .freeze-banner.active { display: flex; }
     .unfreeze-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 8px; border-radius: 3px; cursor: pointer; }
 
-    /* Custom SVG Markers */
+    /* Custom Leaflet Marker Hover */
     .nws-marker { transition: all 0.2s ease; }
     .nws-marker:hover { transform: scale(1.3); z-index: 1000 !important; }
-    .marker-faded { opacity: 0.25; filter: grayscale(80%); }
 
-    /* Custom Leaflet Popup */
+    /* Popup Styling */
     .leaflet-popup-content-wrapper { background: var(--panel-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; }
     .leaflet-popup-tip { background: var(--panel-bg); }
     .popup-title { font-weight: bold; font-size: 1rem; color: #fff; margin-bottom: 4px; }
-    .popup-type { font-size: 0.8rem; font-weight: 600; color: var(--accent); text-transform: uppercase; margin-bottom: 6px; }
+    .popup-type { font-size: 0.8rem; font-weight: 600; color: var(--accent); text-transform: uppercase; margin-bottom: 4px; }
+    .popup-precision { font-size: 0.75rem; color: #f59e0b; margin-bottom: 6px; }
     .popup-dates { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; }
     .lineage-btn { width: 100%; background: #3b82f6; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
   </style>
@@ -122,14 +126,14 @@
     </div>
 
     <div class="timeline-container">
-      <button class="play-btn" id="playBtn">Play</button>
+      <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Year:</span>
       <input type="range" id="yearSlider" min="1870" max="2026" value="1890" step="1">
       <div class="year-display" id="yearDisplay">1890</div>
     </div>
   </header>
 
   <div class="freeze-banner" id="freezeBanner">
-    <span>🔒 <strong>Lineage Lock Active:</strong> Timeline frozen to show full station history across time.</span>
+    <span>🔒 <strong>Lineage Lock Active:</strong> Timeline frozen to show full station history for selected location.</span>
     <button class="unfreeze-btn" id="unfreezeBtn">Resume Timeline</button>
   </div>
 
@@ -137,18 +141,39 @@
     <div id="map"></div>
 
     <div class="sidebar">
+      <!-- City / Group Dropdown Section -->
       <div class="sidebar-section">
-        <h3>Station Field Types</h3>
-        <ul class="filter-list" id="typeFilters">
-          <!-- Populated by JS -->
-        </ul>
+        <h3>Station Lineage Selector</h3>
+        <select id="groupDropdown" class="group-select">
+          <option value="">-- View All (Timeline Active) --</option>
+        </select>
       </div>
 
+      <!-- Station Details / Lineage Breakdown -->
       <div class="sidebar-section" style="flex-grow:1; overflow-y:auto;">
         <h3>Station Group Details</h3>
         <div id="groupInfo" style="font-size: 0.85rem; color: var(--text-muted);">
-          Select a marker on the map to view facility chronology and history.
+          Select a marker on the map or pick a city from the dropdown above to inspect full station lineage.
         </div>
+      </div>
+
+      <!-- Legend Section -->
+      <div class="sidebar-section">
+        <h3>Precision Shapes Legend</h3>
+        <ul class="filter-list">
+          <li class="filter-item">
+            <span class="filter-label"><span class="shape-icon"><svg width="12" height="12"><circle cx="6" cy="6" r="5" fill="#3b82f6" stroke="#fff" stroke-width="1.5"/></svg></span> Exact Location</span>
+            <span style="font-size:0.75rem; color:var(--text-muted);">Precise building/coords</span>
+          </li>
+          <li class="filter-item">
+            <span class="filter-label"><span class="shape-icon"><svg width="12" height="12"><polygon points="6,1 11,11 1,11" fill="#3b82f6" stroke="#fff" stroke-width="1.5"/></svg></span> General Area</span>
+            <span style="font-size:0.75rem; color:var(--text-muted);">e.g. Airport grounds</span>
+          </li>
+          <li class="filter-item">
+            <span class="filter-label"><span class="shape-icon"><svg width="12" height="12"><rect x="1" y="1" width="10" height="10" fill="#3b82f6" stroke="#fff" stroke-width="1.5"/></svg></span> City Level Only</span>
+            <span style="font-size:0.75rem; color:var(--text-muted);">General municipality</span>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
@@ -157,188 +182,145 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
-    // -------------------------------------------------------------
-    // 1. Station Type Taxonomy & Color Schemes (Categorized visually)
-    // -------------------------------------------------------------
+    // Taxonomy colors
     const STATION_TYPES = {
-      // [Forecast Offices] -> Blues / Cyan
-      "Weather Bureau District Forecast Office/Forecast Center": { category: "Forecast", color: "#1d4ed8" },
-      "Weather Service Forecast Office (WSFO)":                { category: "Forecast", color: "#2563eb" },
-      "Weather Forecast Office (WFO)":                         { category: "Forecast", color: "#0284c7" },
-
-      // [Basic Offices] -> Amber / Yellow / Orange
-      "Signal Service Office":                                 { category: "Basic",    color: "#d97706" },
-      "Weather Bureau Office (WBO)":                           { category: "Basic",    color: "#f59e0b" },
-      "Weather Bureau Airways Station (WBAS)":                 { category: "Basic",    color: "#eab308" },
-      "Weather Service Office (WSO)":                          { category: "Basic",    color: "#fbbf24" },
-
-      // [Specialty Offices] -> Greens / Teals
-      "Agricultural Service Office/Agricultural Weather Service Center": { category: "Specialty", color: "#059669" },
-      "Weather Bureau-Fire Weather Office":                              { category: "Specialty", color: "#10b981" },
-      "WSO-Agricultural":                                                { category: "Specialty", color: "#34d399" },
-      "WSO-Fire Weather":                                                { category: "Specialty", color: "#4ade80" },
-      "WSO-Forestry":                                                    { category: "Specialty", color: "#86efac" },
-
-      // [Data Collection] -> Purples / Pinks
-      "Weather Bureau Meteorological Observatory (WBMO)":       { category: "Data",     color: "#7c3aed" },
-      "Weather Service Meteorological Observatory (WSMO)":      { category: "Data",     color: "#8b5cf6" },
-      "Weather Service Contract Meteorological Observatory (WSCMO)": { category: "Data", color: "#a855f7" },
-      "Data Collection Office (DCO)":                           { category: "Data",     color: "#c084fc" }
+      "Signal Service Office":                                 { color: "#d97706" },
+      "Weather Bureau Office (WBO)":                           { color: "#f59e0b" },
+      "Weather Service Office (WSO)":                          { color: "#fbbf24" },
+      "Weather Bureau Forecast Office":                        { color: "#1d4ed8" },
+      "Weather Service Forecast Office (WSFO)":                { color: "#2563eb" }
     };
 
-    // -------------------------------------------------------------
-    // 2. Sample Dataset with Group IDs (Location Lineages)
-    // -------------------------------------------------------------
-    const sampleData = [
-      // Vicksburg, MS Lineage Group (groupId: "vicksburg-ms")
-      {
-        id: "vks-1",
-        groupId: "vicksburg-ms",
-        groupName: "Vicksburg Station Lineage",
-        name: "Vicksburg Signal Service Office",
-        type: "Signal Service Office",
-        lat: 32.3526, lon: -90.8779,
-        startYear: 1871, endYear: 1891,
-        address: "Custom House / Post Office, Vicksburg, MS"
-      },
-      {
-        id: "vks-2",
-        groupId: "vicksburg-ms",
-        groupName: "Vicksburg Station Lineage",
-        name: "Vicksburg Weather Bureau Office",
-        type: "Weather Bureau Office (WBO)",
-        lat: 32.3515, lon: -90.8785,
-        startYear: 1891, endYear: 1965,
-        address: "First National Bank Bldg, Vicksburg, MS"
-      },
-      {
-        id: "vks-3",
-        groupId: "vicksburg-ms",
-        groupName: "Vicksburg Station Lineage",
-        name: "Vicksburg WSO",
-        type: "Weather Service Office (WSO)",
-        lat: 32.3300, lon: -90.8500,
-        startYear: 1965, endYear: 1996,
-        address: "Vicksburg Airport, MS"
-      },
+    let stationData = [];
+    let activeGroupId = null;
 
-      // Jackson / JAN WFO Lineage Group (groupId: "jackson-ms")
-      {
-        id: "jan-1",
-        groupId: "jackson-ms",
-        groupName: "Jackson Station Lineage",
-        name: "Jackson Weather Bureau Office",
-        type: "Weather Bureau Office (WBO)",
-        lat: 32.2988, lon: -90.1848,
-        startYear: 1909, endYear: 1963,
-        address: "Old Federal Bldg, Jackson, MS"
-      },
-      {
-        id: "jan-2",
-        groupId: "jackson-ms",
-        groupName: "Jackson Station Lineage",
-        name: "Jackson WSFO",
-        type: "Weather Service Forecast Office (WSFO)",
-        lat: 32.3200, lon: -90.0780,
-        startYear: 1963, endYear: 1998,
-        address: "Allen C. Thompson Field, Jackson, MS"
-      },
-      {
-        id: "jan-3",
-        groupId: "jackson-ms",
-        groupName: "Jackson Station Lineage",
-        name: "Jackson WFO",
-        type: "Weather Forecast Office (WFO)",
-        lat: 32.3210, lon: -90.0770,
-        startYear: 1998, endYear: 2026,
-        address: "E. Metro Pkwy, Flowood / Jackson, MS"
-      }
-    ];
-
-    // -------------------------------------------------------------
-    // 3. Application State & Map Initialization
-    // -------------------------------------------------------------
-    let activeGroupId = null; // When set, freezes timeline & isolates station group
-    let isPlaying = false;
-    let playInterval = null;
-
-    // Initialize Map with ESRI Dark Gray Tiles (NO API KEY REQUIRED)
-    const map = L.map('map', { zoomControl: true }).setView([32.3, -90.5], 8);
+    // Initialize Map (Esri Dark Gray Basemap)
+    const map = L.map('map', { zoomControl: true }).setView([32.3, -90.5], 7);
 
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+      attribution: 'Tiles &copy; Esri',
       maxZoom: 16
     }).addTo(map);
 
-    // Optional Reference Overlay for labels
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
-      attribution: '',
       maxZoom: 16
     }).addTo(map);
 
     const markerLayerGroup = L.layerGroup().addTo(map);
 
-    // -------------------------------------------------------------
-    // 4. Custom Marker Generation
-    // -------------------------------------------------------------
-    function createCustomIcon(color, isGroupActive = false) {
-      const size = isGroupActive ? 18 : 14;
-      const border = isGroupActive ? '3px solid #ffffff' : '2px solid rgba(255,255,255,0.8)';
-      const shadow = isGroupActive ? '0 0 10px ' + color : '0 2px 4px rgba(0,0,0,0.5)';
+    // Fetch JSON data
+    fetch('data.json')
+      .then(response => response.json())
+      .then(data => {
+        stationData = data;
+        populateDropdown();
+        renderMap();
+      })
+      .catch(error => console.error('Error loading data.json:', error));
+
+    // Create SVG Leaflet Marker based on Precision Shape
+    function createShapeIcon(color, precision, isGroupActive = false) {
+      const size = isGroupActive ? 16 : 12;
+      const canvasSize = size + 8;
+      const stroke = isGroupActive ? '#ffffff' : 'rgba(255,255,255,0.85)';
+      const strokeWidth = isGroupActive ? '2.5' : '1.5';
+      const center = canvasSize / 2;
+
+      let svgInner = '';
+      if (precision === 'exact') {
+        svgInner = `<circle cx="${center}" cy="${center}" r="${size/2}" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+      } else if (precision === 'area') {
+        // Triangle pointing up
+        const top = center - size/2;
+        const bottom = center + size/2;
+        const left = center - size/2;
+        const right = center + size/2;
+        svgInner = `<polygon points="${center},${top} ${right},${bottom} ${left},${bottom}" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+      } else { // 'city' default to square
+        const offset = center - size/2;
+        svgInner = `<rect x="${offset}" y="${offset}" width="${size}" height="${size}" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+      }
 
       return L.divIcon({
         className: 'nws-marker',
-        html: `<div style="
-          background-color: ${color};
-          width: ${size}px;
-          height: ${size}px;
-          border-radius: 50%;
-          border: ${border};
-          box-shadow: ${shadow};
-        "></div>`,
-        iconSize: [size, size],
-        iconAnchor: [size / 2, size / 2]
+        html: `<svg width="${canvasSize}" height="${canvasSize}">${svgInner}</svg>`,
+        iconSize: [canvasSize, canvasSize],
+        iconAnchor: [center, center]
       });
     }
 
-    // -------------------------------------------------------------
-    // 5. Dynamic Map Rendering Logic
-    // -------------------------------------------------------------
+    // Populate Alphabetized Dropdown
+    function populateDropdown() {
+      const dropdown = document.getElementById('groupDropdown');
+      
+      // Extract unique groups
+      const groupsMap = new Map();
+      stationData.forEach(s => {
+        if (!groupsMap.has(s.groupId)) {
+          groupsMap.set(s.groupId, s.groupName);
+        }
+      });
+
+      // Sort alphabetically by groupName
+      const sortedGroups = Array.from(groupsMap.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+
+      sortedGroups.forEach(([groupId, groupName]) => {
+        const option = document.createElement('option');
+        option.value = groupId;
+        option.textContent = groupName;
+        dropdown.appendChild(option);
+      });
+    }
+
+    // Dropdown change event
+    document.getElementById('groupDropdown').addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (!val) {
+        unfreezeLineage();
+      } else {
+        lockGroupLineage(val);
+      }
+    });
+
+    // Render Map Logic
     function renderMap() {
       markerLayerGroup.clearLayers();
       const currentYear = parseInt(document.getElementById('yearSlider').value);
 
-      sampleData.forEach(station => {
+      stationData.forEach(station => {
         const typeInfo = STATION_TYPES[station.type] || { color: '#94a3b8' };
         
-        // Mode A: Group Lineage Freeze Mode
         if (activeGroupId !== null) {
+          // Locked / Freeze Mode for Selected Group
           if (station.groupId === activeGroupId) {
-            // Plot ALL stations in this group regardless of year
-            const icon = createCustomIcon(typeInfo.color, true);
+            const icon = createShapeIcon(typeInfo.color, station.precision, true);
             const marker = L.marker([station.lat, station.lon], { icon }).addTo(markerLayerGroup);
             
             marker.bindPopup(`
               <div class="popup-title">${station.name}</div>
-              <div class="popup-type" style="color:${typeInfo.color}">${station.type}</div>
-              <div class="popup-dates">Active: ${station.startYear} &ndash; ${station.endYear}</div>
+              <div class="popup-type">${station.type}</div>
+              <div class="popup-precision">Precision: ${station.precision.toUpperCase()}</div>
+              <div class="popup-dates">Active: ${station.startDate} &ndash; ${station.endDate}</div>
               <div>${station.address}</div>
             `);
           }
-        } 
-        // Mode B: Timeline Year Mode
-        else {
-          if (currentYear >= station.startYear && currentYear <= station.endYear) {
-            const icon = createCustomIcon(typeInfo.color, false);
+        } else {
+          // Standard Timeline Mode
+          const startYr = parseInt(station.startDate.substring(0, 4));
+          const endYr = station.endDate === 'present' ? 2026 : parseInt(station.endDate.substring(0, 4));
+
+          if (currentYear >= startYr && currentYear <= endYr) {
+            const icon = createShapeIcon(typeInfo.color, station.precision, false);
             const marker = L.marker([station.lat, station.lon], { icon }).addTo(markerLayerGroup);
             
             marker.bindPopup(`
               <div class="popup-title">${station.name}</div>
-              <div class="popup-type" style="color:${typeInfo.color}">${station.type}</div>
-              <div class="popup-dates">Active: ${station.startYear} &ndash; ${station.endYear}</div>
+              <div class="popup-type">${station.type}</div>
+              <div class="popup-precision">Precision: ${station.precision.toUpperCase()}</div>
+              <div class="popup-dates">Active: ${station.startDate} &ndash; ${station.endDate}</div>
               <p style="font-size:0.8rem; margin-bottom:8px;">${station.address}</p>
               <button class="lineage-btn" onclick="lockGroupLineage('${station.groupId}')">
-                🔒 Freeze Map & View Full Lineage
+                🔒 View Full Lineage
               </button>
             `);
           }
@@ -346,33 +328,26 @@
       });
     }
 
-    // -------------------------------------------------------------
-    // 6. Station Lineage Lock Handler
-    // -------------------------------------------------------------
+    // Lineage Lock Functions
     window.lockGroupLineage = function(groupId) {
       activeGroupId = groupId;
-      
-      // Stop animation if playing
-      if (isPlaying) togglePlay();
-
-      // Show Banner
+      document.getElementById('groupDropdown').value = groupId;
       document.getElementById('freezeBanner').classList.add('active');
 
-      // Populate Sidebar Lineage Info
-      const groupStations = sampleData
+      const groupStations = stationData
         .filter(s => s.groupId === groupId)
-        .sort((a,b) => a.startYear - b.startYear);
+        .sort((a,b) => a.startDate.localeCompare(b.startDate));
 
-      let html = `<h4 style="color:#fff; margin-bottom:8px;">${groupStations[0].groupName}</h4>`;
-      html += `<p style="font-size:0.75rem; margin-bottom:12px;">Displaying all historical iterations for this station lineage across all years.</p>`;
-      
+      let html = `<h4 style="color:#fff; margin-bottom:8px;">${groupStations[0].groupName} Lineage</h4>`;
+      html += `<p style="font-size:0.75rem; margin-bottom:12px;">Timeline frozen. Displaying all recorded locations across time.</p>`;
+
       groupStations.forEach(s => {
         const typeInfo = STATION_TYPES[s.type] || { color: '#94a3b8' };
         html += `
           <div style="background:#121824; padding:8px; border-radius:4px; margin-bottom:8px; border-left:4px solid ${typeInfo.color}">
             <div style="font-weight:bold; color:#fff;">${s.name}</div>
-            <div style="font-size:0.75rem; color:${typeInfo.color};">${s.type}</div>
-            <div style="font-size:0.75rem; color:var(--text-muted);">${s.startYear} &ndash; ${s.endYear}</div>
+            <div style="font-size:0.75rem; color:${typeInfo.color};">${s.type} (${s.precision})</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">${s.startDate} &ndash; ${s.endDate}</div>
           </div>
         `;
       });
@@ -381,66 +356,29 @@
       renderMap();
     };
 
-    document.getElementById('unfreezeBtn').addEventListener('click', () => {
+    function unfreezeLineage() {
       activeGroupId = null;
+      document.getElementById('groupDropdown').value = "";
       document.getElementById('freezeBanner').classList.remove('active');
-      document.getElementById('groupInfo').innerHTML = 'Select a marker on the map to view facility chronology and history.';
+      document.getElementById('groupInfo').innerHTML = 'Select a marker on the map or pick a city from the dropdown above to inspect full station lineage.';
       renderMap();
-    });
+    }
 
-    // -------------------------------------------------------------
-    // 7. Timeline Controls & Legend Generation
-    // -------------------------------------------------------------
+    document.getElementById('unfreezeBtn').addEventListener('click', unfreezeLineage);
+
+    // Timeline Slider listener
     const yearSlider = document.getElementById('yearSlider');
     const yearDisplay = document.getElementById('yearDisplay');
-    const playBtn = document.getElementById('playBtn');
 
     yearSlider.addEventListener('input', (e) => {
       if (activeGroupId !== null) {
-        // If slider is moved while frozen, auto-unfreeze
-        activeGroupId = null;
-        document.getElementById('freezeBanner').classList.remove('active');
+        unfreezeLineage(); // Auto-unlock if user moves timeline
       }
       yearDisplay.textContent = e.target.value;
       renderMap();
     });
 
-    function togglePlay() {
-      isPlaying = !isPlaying;
-      playBtn.textContent = isPlaying ? "Pause" : "Play";
-      
-      if (isPlaying) {
-        playInterval = setInterval(() => {
-          let curr = parseInt(yearSlider.value);
-          if (curr >= parseInt(yearSlider.max)) curr = parseInt(yearSlider.min);
-          else curr++;
-          
-          yearSlider.value = curr;
-          yearDisplay.textContent = curr;
-          renderMap();
-        }, 300);
-      } else {
-        clearInterval(playInterval);
-      }
-    }
-    playBtn.addEventListener('click', togglePlay);
-
-    // Build Sidebar Filters / Legend
-    const filterList = document.getElementById('typeFilters');
-    Object.entries(STATION_TYPES).forEach(([typeName, meta]) => {
-      const li = document.createElement('li');
-      li.className = 'filter-item';
-      li.innerHTML = `
-        <span class="filter-label">
-          <span class="color-dot" style="background-color:${meta.color}"></span>
-          ${typeName}
-        </span>
-      `;
-      filterList.appendChild(li);
-    });
-
-    // Initial Render
-    renderMap();
+    yearDisplay.textContent = yearSlider.value;
   </script>
 </body>
 </html>
