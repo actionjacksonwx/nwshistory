@@ -184,12 +184,12 @@
   <script>
     // Taxonomy colors
     const STATION_TYPES = {
-      "Signal Service Office":                                 { color: "#d97706" },
-      "Weather Bureau Office (WBO)":                           { color: "#f59e0b" },
-      "Weather Service Office (WSO)":                          { color: "#fbbf24" },
-      "Weather Bureau Forecast Office":                        { color: "#1d4ed8" },
-      "Weather Service Forecast Office (WSFO)":                { color: "#2563eb" },
-      "Weather Forecast Office (WFO)":                         { color: "#0284c7" }
+      "Signal Service Office":                                     { color: "#d97706" },
+      "Weather Bureau Office (WBO)":                             { color: "#f59e0b" },
+      "Weather Service Office (WSO)":                            { color: "#fbbf24" },
+      "Weather Bureau Forecast Office":                          { color: "#1d4ed8" },
+      "Weather Service Forecast Office (WSFO)":                    { color: "#2563eb" },
+      "Weather Forecast Office (WFO)":                           { color: "#0284c7" }
     };
 
     // CONUS View Coordinates & Default Zoom
@@ -213,6 +213,22 @@
     }).addTo(map);
 
     const markerLayerGroup = L.layerGroup().addTo(map);
+
+    // Helper function to format "YYYY-MM" into "Mon Year" (e.g., "1885-01" -> "Jan 1885")
+    function formatDate(dateStr) {
+      if (!dateStr || dateStr === 'present') return dateStr;
+      const parts = dateStr.split('-');
+      if (parts.length !== 2) return dateStr;
+      
+      const year = parts[0];
+      const monthNum = parseInt(parts[1], 10);
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      
+      if (monthNum >= 1 && monthNum <= 12) {
+        return `${months[monthNum - 1]} ${year}`;
+      }
+      return dateStr;
+    }
 
     // Fetch JSON data
     fetch('data.json')
@@ -293,6 +309,10 @@
       stationData.forEach(station => {
         const typeInfo = STATION_TYPES[station.type] || { color: '#94a3b8' };
         
+        const formattedStart = formatDate(station.startDate);
+        const formattedEnd = station.endDate === 'present' ? 'present' : formatDate(station.endDate);
+        const notesSection = station.notes ? `<div style="font-size:0.8rem; margin-top:4px; color:var(--text-muted); font-style:italic;">${station.notes}</div>` : '';
+
         if (activeGroupId !== null) {
           // Locked / Freeze Mode for Selected Group
           if (station.groupId === activeGroupId) {
@@ -303,8 +323,9 @@
               <div class="popup-title">${station.name}</div>
               <div class="popup-type">${station.type}</div>
               <div class="popup-precision">Precision: ${station.precision.toUpperCase()}</div>
-              <div class="popup-dates">Active: ${station.startDate} &ndash; ${station.endDate}</div>
+              <div class="popup-dates">Active: ${formattedStart} &ndash; ${formattedEnd}</div>
               <div>${station.address}</div>
+              ${notesSection}
             `);
           }
         } else {
@@ -320,9 +341,10 @@
               <div class="popup-title">${station.name}</div>
               <div class="popup-type">${station.type}</div>
               <div class="popup-precision">Precision: ${station.precision.toUpperCase()}</div>
-              <div class="popup-dates">Active: ${station.startDate} &ndash; ${station.endDate}</div>
-              <p style="font-size:0.8rem; margin-bottom:8px;">${station.address}</p>
-              <button class="lineage-btn" onclick="lockGroupLineage('${station.groupId}')">
+              <div class="popup-dates">Active: ${formattedStart} &ndash; ${formattedEnd}</div>
+              <p style="font-size:0.8rem; margin-bottom:4px;">${station.address}</p>
+              ${notesSection}
+              <button class="lineage-btn" style="margin-top:8px;" onclick="lockGroupLineage('${station.groupId}')">
                 🔒 View Full Lineage
               </button>
             `);
@@ -367,11 +389,16 @@
 
       groupStations.forEach(s => {
         const typeInfo = STATION_TYPES[s.type] || { color: '#94a3b8' };
+        const fStart = formatDate(s.startDate);
+        const fEnd = s.endDate === 'present' ? 'present' : formatDate(s.endDate);
+        const sideNotes = s.notes ? `<div style="font-size:0.75rem; margin-top:2px; font-style:italic; color:var(--text-muted);">${s.notes}</div>` : '';
         html += `
           <div style="background:#121824; padding:8px; border-radius:4px; margin-bottom:8px; border-left:4px solid ${typeInfo.color}">
             <div style="font-weight:bold; color:#fff;">${s.name}</div>
             <div style="font-size:0.75rem; color:${typeInfo.color};">${s.type} (${s.precision})</div>
-            <div style="font-size:0.75rem; color:var(--text-muted);">${s.startDate} &ndash; ${s.endDate}</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">${fStart} &ndash; ${fEnd}</div>
+            <div style="font-size:0.75rem; color:var(--text);">📍 ${s.address}</div>
+            ${sideNotes}
           </div>
         `;
       });
