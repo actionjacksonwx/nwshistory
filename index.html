@@ -1,819 +1,446 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NWS Historical Facility Explorer</title>
-    
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        nws: {
-                            blue: '#1d4ed8',
-                            dark: '#0f172a',
-                            panel: '#1e293b',
-                            accent: '#38bdf8'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <!-- Leaflet CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NWS Historical Field Office Mapping Project</title>
 
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-        }
-        
-        /* Custom Leaflet Dark Popup Styles */
-        .leaflet-popup-content-wrapper {
-            background-color: #1e293b !important;
-            color: #f8fafc !important;
-            border-radius: 0.75rem !important;
-            padding: 0.25rem !important;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
-            border: 1px solid #334155 !important;
-        }
-        .leaflet-popup-tip {
-            background-color: #1e293b !important;
-        }
-        .leaflet-popup-close-button {
-            color: #94a3b8 !important;
-            padding: 8px 8px 0 0 !important;
-        }
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-        /* Custom Marker Animation */
-        .marker-pulse {
-            box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7);
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7);
-            }
-            70% {
-                transform: scale(1);
-                box-shadow: 0 0 0 10px rgba(56, 189, 248, 0);
-            }
-            100% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(56, 189, 248, 0);
-            }
-        }
+  <style>
+    :root {
+      --bg-dark: #121824;
+      --panel-bg: #1e2638;
+      --accent: #3b82f6;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #334155;
+    }
 
-        /* Range Slider Styling */
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 22px;
-            width: 22px;
-            border-radius: 50%;
-            background: #38bdf8;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
-            margin-top: -8px;
-            border: 2px solid #0f172a;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 6px;
-            cursor: pointer;
-            background: #334155;
-            border-radius: 3px;
-        }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg-dark); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-    </style>
+    /* Top Control Header */
+    header {
+      background: var(--panel-bg);
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 1000;
+    }
+    .brand h1 { font-size: 1.1rem; font-weight: 600; }
+    .brand p { font-size: 0.8rem; color: var(--text-muted); }
+
+    .timeline-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-grow: 1;
+      max-width: 650px;
+      margin: 0 20px;
+    }
+    .year-display {
+      font-size: 1.4rem;
+      font-weight: 700;
+      font-mono: monospace;
+      min-width: 65px;
+      color: var(--accent);
+    }
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .play-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .play-btn:hover { opacity: 0.9; }
+
+    /* Main Container */
+    .main-content { display: flex; flex-grow: 1; relative; height: calc(100vh - 61px); }
+    #map { flex-grow: 1; background: #0f172a; height: 100%; }
+
+    /* Sidebar / Overlay UI */
+    .sidebar {
+      width: 320px;
+      background: var(--panel-bg);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 900;
+    }
+    .sidebar-section { padding: 15px; border-bottom: 1px solid var(--border); }
+    .sidebar-section h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 10px; }
+
+    .filter-list { list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; }
+    .filter-item { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+    .filter-label { display: flex; align-items: center; gap: 8px; }
+    .color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+
+    /* Freeze Mode Banner */
+    .freeze-banner {
+      background: #7c3aed;
+      color: white;
+      padding: 10px 15px;
+      font-size: 0.85rem;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .freeze-banner.active { display: flex; }
+    .unfreeze-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 8px; border-radius: 3px; cursor: pointer; }
+
+    /* Custom SVG Markers */
+    .nws-marker { transition: all 0.2s ease; }
+    .nws-marker:hover { transform: scale(1.3); z-index: 1000 !important; }
+    .marker-faded { opacity: 0.25; filter: grayscale(80%); }
+
+    /* Custom Leaflet Popup */
+    .leaflet-popup-content-wrapper { background: var(--panel-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; }
+    .leaflet-popup-tip { background: var(--panel-bg); }
+    .popup-title { font-weight: bold; font-size: 1rem; color: #fff; margin-bottom: 4px; }
+    .popup-type { font-size: 0.8rem; font-weight: 600; color: var(--accent); text-transform: uppercase; margin-bottom: 6px; }
+    .popup-dates { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; }
+    .lineage-btn { width: 100%; background: #3b82f6; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+  </style>
 </head>
-<body class="bg-slate-900 text-slate-100 h-screen w-screen flex flex-col md:flex-row overflow-hidden">
+<body>
 
-    <!-- Mobile Header -->
-    <div class="md:hidden bg-slate-800 p-3 flex justify-between items-center border-b border-slate-700 z-30">
-        <div class="flex items-center space-x-2">
-            <i class="fa-solid fa-cloud-sun-rain text-sky-400 text-xl"></i>
-            <span class="font-bold text-lg text-white">NWS History Map</span>
-        </div>
-        <button id="toggleSidebarMobile" class="p-2 bg-slate-700 rounded text-slate-200">
-            <i class="fa-solid fa-bars"></i>
-        </button>
+  <header>
+    <div class="brand">
+      <h1>NWS Field Office Historical Mapper</h1>
+      <p>1870 &ndash; Present Station Chronology</p>
     </div>
 
-    <!-- Sidebar Controls -->
-    <aside id="sidebar" class="w-full md:w-80 lg:w-96 bg-slate-800 border-r border-slate-700/80 flex flex-col z-20 absolute md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out h-[calc(100vh-53px)] md:h-full">
-        <!-- Sidebar Header -->
-        <div class="p-4 border-b border-slate-700/80 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="p-2 bg-sky-500/10 rounded-lg border border-sky-500/20 text-sky-400">
-                    <i class="fa-solid fa-building-columns text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-lg text-white tracking-wide">NWS History</h1>
-                    <p class="text-xs text-slate-400">Facility Lineage & Timeline Explorer</p>
-                </div>
-            </div>
-            <button id="closeSidebarMobile" class="md:hidden text-slate-400 hover:text-white">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
-        </div>
-
-        <!-- Scrollable Control Panel -->
-        <div class="flex-1 overflow-y-auto p-4 space-y-6">
-            
-            <!-- Station Lineage Quick Select -->
-            <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/60 space-y-2">
-                <label for="stationGroupSelect" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider flex justify-between">
-                    <span>Station Group / Lineage</span>
-                    <i class="fa-solid fa-sitemap text-sky-400"></i>
-                </label>
-                <select id="stationGroupSelect" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500">
-                    <option value="ALL">Show All Station Groups</option>
-                    <!-- Populated dynamically via JavaScript -->
-                </select>
-                <p class="text-[11px] text-slate-400 leading-tight">Select a station group (e.g., Washington DC, Vicksburg) to view its evolution across signal offices, weather bureaus, and modern WFOs.</p>
-            </div>
-
-            <!-- Office Type Filters -->
-            <div class="space-y-2.5">
-                <div class="flex justify-between items-center">
-                    <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Facility Types</span>
-                    <button id="selectAllTypes" class="text-[11px] text-sky-400 hover:text-sky-300 underline">Reset All</button>
-                </div>
-                
-                <div id="facilityTypeFilters" class="space-y-1.5">
-                    <!-- Dynamic Checkboxes populated via JavaScript -->
-                </div>
-            </div>
-
-            <!-- Active Station Statistics & Info Card -->
-            <div class="bg-slate-900/40 border border-slate-700/50 rounded-xl p-3.5 space-y-2 text-xs">
-                <div class="text-slate-400 flex justify-between">
-                    <span>Active in <strong id="statYearDisplay" class="text-sky-400 font-bold">1950</strong>:</span>
-                    <span id="statActiveCount" class="font-bold text-white text-sm">0 facilities</span>
-                </div>
-                <div class="text-slate-400 flex justify-between">
-                    <span>Total Station Groups:</span>
-                    <span id="statTotalGroups" class="font-bold text-white">0 groups</span>
-                </div>
-                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mt-1">
-                    <div id="statProgressBar" class="bg-sky-400 h-full transition-all duration-300" style="width: 0%"></div>
-                </div>
-            </div>
-
-            <!-- Legend Section -->
-            <div class="space-y-2">
-                <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Legend</span>
-                <div id="legendContainer" class="grid grid-cols-1 gap-2 text-xs">
-                    <!-- Populated via JavaScript -->
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Sidebar Footer -->
-        <div class="p-3 border-t border-slate-700/80 text-center text-[11px] text-slate-500">
-            National Weather Service Historical Archive Explorer
-        </div>
-    </aside>
-
-    <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col relative h-full w-full overflow-hidden">
-
-        <!-- Map Container -->
-        <div id="map" class="flex-1 w-full h-full bg-slate-950 z-0"></div>
-
-        <!-- Floating Timeline Slider Overlay -->
-        <div class="absolute bottom-4 left-4 right-4 md:left-8 md:right-8 bg-slate-800/90 backdrop-blur-md p-4 rounded-xl border border-slate-700 shadow-2xl z-10 space-y-3 max-w-4xl mx-auto">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <button id="playBtn" class="p-2.5 bg-sky-500 hover:bg-sky-400 text-slate-900 rounded-full w-10 h-10 flex items-center justify-center transition shadow-lg shadow-sky-500/20">
-                        <i class="fa-solid fa-play text-sm"></i>
-                    </button>
-                    <div>
-                        <span class="text-xs text-slate-400 font-medium uppercase tracking-wider block">Timeline Control</span>
-                        <span id="currentYearDisplay" class="text-2xl font-bold text-white tracking-tight">1950</span>
-                    </div>
-                </div>
-
-                <!-- Eras Quick Navigation -->
-                <div class="hidden sm:flex items-center space-x-1.5 text-xs">
-                    <button data-year="1870" class="era-btn px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-300 transition">1870s</button>
-                    <button data-year="1891" class="era-btn px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-300 transition">1890s</button>
-                    <button data-year="1940" class="era-btn px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-300 transition">1940s</button>
-                    <button data-year="1970" class="era-btn px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-300 transition">1970s</button>
-                    <button data-year="2026" class="era-btn px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-300 transition">Present</button>
-                </div>
-            </div>
-
-            <!-- Slider Control -->
-            <div class="space-y-1">
-                <input id="timeSlider" type="range" min="1870" max="2026" value="1950" class="w-full">
-                <div class="flex justify-between text-[11px] text-slate-400 px-0.5">
-                    <span>1870 (Signal Service)</span>
-                    <span>1891 (Weather Bureau)</span>
-                    <span>1970 (NWS Established)</span>
-                    <span>2026 (Modern Era)</span>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Modal Dialog for Station Group Lineage -->
-    <div id="lineageModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300">
-            <!-- Modal Header -->
-            <div class="p-5 border-b border-slate-700 flex justify-between items-start bg-slate-800/80">
-                <div class="flex items-center space-x-3">
-                    <div class="p-3 bg-sky-500/10 rounded-xl border border-sky-500/20 text-sky-400">
-                        <i class="fa-solid fa-timeline text-2xl"></i>
-                    </div>
-                    <div>
-                        <h2 id="modalStationTitle" class="text-xl font-bold text-white">Station Group Lineage</h2>
-                        <p id="modalStationSubtitle" class="text-xs text-sky-400 font-medium">Historical timeline of offices</p>
-                    </div>
-                </div>
-                <button id="closeModal" class="text-slate-400 hover:text-white p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <!-- Modal Content Body -->
-            <div class="p-6 overflow-y-auto flex-1 space-y-6">
-                <!-- Group Description -->
-                <div id="modalStationDesc" class="text-sm text-slate-300 bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 leading-relaxed">
-                    Description of station history.
-                </div>
-
-                <!-- Chronological Timeline List -->
-                <div class="space-y-4">
-                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Chronological Facility Evolution</h3>
-                    <div id="modalTimelineList" class="relative border-l-2 border-slate-700 ml-3 space-y-6 pl-6">
-                        <!-- Populated dynamically via JS -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="p-4 border-t border-slate-700 bg-slate-900/50 flex justify-between items-center text-xs text-slate-400">
-                <span>Station Index ID: <code id="modalStationId" class="text-sky-400">STN-000</code></span>
-                <button id="modalCloseBtn" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition">Close History</button>
-            </div>
-        </div>
+    <div class="timeline-container">
+      <button class="play-btn" id="playBtn">Play</button>
+      <input type="range" id="yearSlider" min="1870" max="2026" value="1890" step="1">
+      <div class="year-display" id="yearDisplay">1890</div>
     </div>
+  </header>
 
-    <!-- Application Logic -->
-    <script>
-        // Sample Comprehensive Historical NWS Data Structure
-        const facilityTypes = {
-            'Signal Service': { color: '#f59e0b', icon: 'fa-flag-usa' },
-            'Weather Bureau Office': { color: '#3b82f6', icon: 'fa-cloud-sun' },
-            'NWS WFO': { color: '#06b6d4', icon: 'fa-satellite-dish' },
-            'Radar / WSR-88D': { color: '#ec4899', icon: 'fa-radar' },
-            'River Forecast Center': { color: '#10b981', icon: 'fa-water' },
-            'Cotton Region Station': { color: '#8b5cf6', icon: 'fa-seedling' }
-        };
+  <div class="freeze-banner" id="freezeBanner">
+    <span>🔒 <strong>Lineage Lock Active:</strong> Timeline frozen to show full station history across time.</span>
+    <button class="unfreeze-btn" id="unfreezeBtn">Resume Timeline</button>
+  </div>
 
-        const stationGroups = [
-            {
-                groupId: "WDC-GROUP",
-                cityName: "Washington, D.C.",
-                description: "The central headquarters and early signal station lineage for national weather operations in the United States capital.",
-                entries: [
-                    {
-                        id: "wdc-01",
-                        name: "Signal Corps Central Office",
-                        type: "Signal Service",
-                        lat: 38.8951,
-                        lon: -77.0364,
-                        startYear: 1870,
-                        endYear: 1891,
-                        address: "207 Pennsylvania Ave, Washington D.C.",
-                        equipment: "Barometer, Anemometer, Telegraph Line",
-                        details: "First central meteorological reporting hub established by Gen. Albert J. Myer under the Army Signal Service."
-                    },
-                    {
-                        id: "wdc-02",
-                        name: "US Weather Bureau Central Office",
-                        type: "Weather Bureau Office",
-                        lat: 38.9072,
-                        lon: -77.0369,
-                        startYear: 1891,
-                        endYear: 1970,
-                        address: "24th and M Streets NW, Washington D.C.",
-                        equipment: "Triple Register, Radiosonde Receiver, Early Teletype",
-                        details: "Transferred to the Department of Agriculture in 1891, expanding national forecast operations."
-                    },
-                    {
-                        id: "wdc-03",
-                        name: "NWS Sterling Weather Forecast Office (WFO)",
-                        type: "NWS WFO",
-                        lat: 38.9774,
-                        lon: -77.4741,
-                        startYear: 1970,
-                        endYear: 2026,
-                        address: "Sterling, VA (Serving Washington D.C. Metro)",
-                        equipment: "AWIPS, WSR-88D, Upper Air Sounding Launch Site",
-                        details: "Renamed to National Weather Service under NOAA in 1970; relocated primary regional forecasting facilities to Sterling, VA."
-                    },
-                    {
-                        id: "wdc-04",
-                        name: "Sterling NEXRAD Doppler Radar (KLWX)",
-                        type: "Radar / WSR-88D",
-                        lat: 38.9753,
-                        lon: -77.4875,
-                        startYear: 1993,
-                        endYear: 2026,
-                        address: "Sterling, VA",
-                        equipment: "WSR-88D Dual-Polarization Radar",
-                        details: "Modern Doppler weather radar servicing the Mid-Atlantic region."
-                    }
-                ]
-            },
-            {
-                groupId: "VKS-GROUP",
-                cityName: "Vicksburg, MS",
-                description: "Key historical river observation site on the Mississippi River, transitioning from early Signal Corps to modern hydrologic monitoring.",
-                entries: [
-                    {
-                        id: "vks-01",
-                        name: "Vicksburg Signal Service Station",
-                        type: "Signal Service",
-                        lat: 32.3526,
-                        lon: -90.8779,
-                        startYear: 1871,
-                        endYear: 1891,
-                        address: "Washington St, Vicksburg, MS",
-                        equipment: "River Gauge, Thermometer Shelter, Barometer",
-                        details: "Established early river level gauge monitoring crucial for Mississippi River navigation and floods."
-                    },
-                    {
-                        id: "vks-02",
-                        name: "Vicksburg Weather Bureau Office",
-                        type: "Weather Bureau Office",
-                        lat: 32.3480,
-                        lon: -90.8800,
-                        startYear: 1891,
-                        endYear: 1965,
-                        address: "Custom House & Post Office, Vicksburg, MS",
-                        equipment: "Anemometer, River Hydrograph Recorder",
-                        details: "Provided pivotal flood warnings during the historic Great Mississippi Flood of 1927."
-                    },
-                    {
-                        id: "vks-03",
-                        name: "Lower Mississippi River Forecast Center (LMRFC)",
-                        type: "River Forecast Center",
-                        lat: 32.3000,
-                        lon: -90.8600,
-                        startYear: 1965,
-                        endYear: 2026,
-                        address: "Slidell / Vicksburg Operations Support",
-                        equipment: "NWSRFS River Modeling System, Automated Rain Gauges",
-                        details: "Integrated specialized hydrologic forecasting for the entire lower Mississippi river basin."
-                    }
-                ]
-            },
-            {
-                groupId: "JAN-GROUP",
-                cityName: "Jackson / Meridian, MS",
-                description: "Central Mississippi observation hub servicing agricultural, severe weather, and radar monitoring networks.",
-                entries: [
-                    {
-                        id: "jan-01",
-                        name: "Meridian Weather Bureau Station",
-                        type: "Weather Bureau Office",
-                        lat: 32.3643,
-                        lon: -88.7037,
-                        startYear: 1890,
-                        endYear: 1950,
-                        address: "Downtown Meridian, MS",
-                        equipment: "Cotton Region Thermometer Shelter, Mercurial Barometer",
-                        details: "Provided critical agricultural observations for Mississippi's cotton region."
-                    },
-                    {
-                        id: "jan-02",
-                        name: "Meridian Cotton Region Special Observer",
-                        type: "Cotton Region Station",
-                        lat: 32.3800,
-                        lon: -88.6900,
-                        startYear: 1915,
-                        endYear: 1975,
-                        address: "Rural Lauderdale County",
-                        equipment: "Standard 8-inch Rain Gauge, Max-Min Thermometers",
-                        details: "Specialized cooperative network observing station recording temperature and precipitation for crops."
-                    },
-                    {
-                        id: "jan-03",
-                        name: "Jackson Weather Forecast Office (JAN)",
-                        type: "NWS WFO",
-                        lat: 32.3210,
-                        lon: -90.0780,
-                        startYear: 1963,
-                        endYear: 2026,
-                        address: "Jackson-Medgar Wiley Evers International Airport",
-                        equipment: "AWIPS Workstations, Radiosonde Upper-Air Soundings",
-                        details: "Primary Forecast Office providing severe weather warnings for Central Mississippi."
-                    },
-                    {
-                        id: "jan-04",
-                        name: "DGX Doppler Radar (KJAN)",
-                        type: "Radar / WSR-88D",
-                        lat: 32.3180,
-                        lon: -90.0800,
-                        startYear: 1995,
-                        endYear: 2026,
-                        address: "Brandon / Jackson, MS",
-                        equipment: "WSR-88D Radar Tower",
-                        details: "High-resolution Doppler radar scanning severe convection and tornadoes in central MS."
-                    }
-                ]
-            },
-            {
-                groupId: "STL-GROUP",
-                cityName: "St. Louis, MO",
-                description: "Midwestern weather forecasting center with rich aviation and river observation history.",
-                entries: [
-                    {
-                        id: "stl-01",
-                        name: "St. Louis Signal Corps Station",
-                        type: "Signal Service",
-                        lat: 38.6270,
-                        lon: -90.1994,
-                        startYear: 1870,
-                        endYear: 1891,
-                        address: "Chamber of Commerce Building, St. Louis, MO",
-                        equipment: "Barometer, Wind Vane, Telegraph Transmitter",
-                        details: "One of the original 24 Signal Service weather stations created in late 1870."
-                    },
-                    {
-                        id: "stl-02",
-                        name: "St. Louis Weather Bureau Airport Station",
-                        type: "Weather Bureau Office",
-                        lat: 38.7486,
-                        lon: -90.3700,
-                        startYear: 1891,
-                        endYear: 1970,
-                        address: "Lambert Field, St. Louis, MO",
-                        equipment: "Ceilometer, Anemometer, Aviation Weather Teletype",
-                        details: "Expanded dramatically during early commercial aviation development."
-                    },
-                    {
-                        id: "stl-03",
-                        name: "NWS St. Louis / Weldon Spring WFO",
-                        type: "NWS WFO",
-                        lat: 38.7040,
-                        lon: -90.6850,
-                        startYear: 1970,
-                        endYear: 2026,
-                        address: "Weldon Spring, MO",
-                        equipment: "AWIPS II, Upper Air Balloon System, WSR-88D",
-                        details: "Modern forecast facility serving Eastern Missouri and Southwest Illinois."
-                    }
-                ]
-            }
-        ];
+  <div class="main-content">
+    <div id="map"></div>
 
-        // Global State Variables
-        let map;
-        let markersLayerGroup;
-        let currentYear = 1950;
-        let selectedGroupFilter = 'ALL';
-        let enabledTypes = Object.keys(facilityTypes);
-        let isPlaying = false;
-        let playInterval = null;
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <h3>Station Field Types</h3>
+        <ul class="filter-list" id="typeFilters">
+          <!-- Populated by JS -->
+        </ul>
+      </div>
 
-        // Initialize Map & Application
-        window.onload = function() {
-            initMap();
-            populateSidebarControls();
-            setupEventListeners();
-            updateMapMarkers();
-        };
+      <div class="sidebar-section" style="flex-grow:1; overflow-y:auto;">
+        <h3>Station Group Details</h3>
+        <div id="groupInfo" style="font-size: 0.85rem; color: var(--text-muted);">
+          Select a marker on the map to view facility chronology and history.
+        </div>
+      </div>
+    </div>
+  </div>
 
-        // Map Initialization using Leaflet
-        function initMap() {
-            map = L.map('map', {
-                center: [37.8, -92.5],
-                zoom: 5,
-                zoomControl: false
-            });
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-            // Re-position zoom control to top-right
-            L.control.zoom({ position: 'topright' }).addTo(map);
+  <script>
+    // -------------------------------------------------------------
+    // 1. Station Type Taxonomy & Color Schemes (Categorized visually)
+    // -------------------------------------------------------------
+    const STATION_TYPES = {
+      // [Forecast Offices] -> Blues / Cyan
+      "Weather Bureau District Forecast Office/Forecast Center": { category: "Forecast", color: "#1d4ed8" },
+      "Weather Service Forecast Office (WSFO)":                { category: "Forecast", color: "#2563eb" },
+      "Weather Forecast Office (WFO)":                         { category: "Forecast", color: "#0284c7" },
 
-            // Dark Basemap Layer (CartoDB Dark Matter / Positron alternative)
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-                subdomains: 'abcd',
-                maxZoom: 19
-            }).addTo(map);
+      // [Basic Offices] -> Amber / Yellow / Orange
+      "Signal Service Office":                                 { category: "Basic",    color: "#d97706" },
+      "Weather Bureau Office (WBO)":                           { category: "Basic",    color: "#f59e0b" },
+      "Weather Bureau Airways Station (WBAS)":                 { category: "Basic",    color: "#eab308" },
+      "Weather Service Office (WSO)":                          { category: "Basic",    color: "#fbbf24" },
 
-            markersLayerGroup = L.layerGroup().addTo(map);
-        }
+      // [Specialty Offices] -> Greens / Teals
+      "Agricultural Service Office/Agricultural Weather Service Center": { category: "Specialty", color: "#059669" },
+      "Weather Bureau-Fire Weather Office":                              { category: "Specialty", color: "#10b981" },
+      "WSO-Agricultural":                                                { category: "Specialty", color: "#34d399" },
+      "WSO-Fire Weather":                                                { category: "Specialty", color: "#4ade80" },
+      "WSO-Forestry":                                                    { category: "Specialty", color: "#86efac" },
 
-        // Populate Sidebar Controls dynamically
-        function populateSidebarControls() {
-            // Populate Station Group Dropdown
-            const groupSelect = document.getElementById('stationGroupSelect');
-            stationGroups.forEach(group => {
-                const opt = document.createElement('option');
-                opt.value = group.groupId;
-                opt.textContent = `${group.cityName} (${group.entries.length} facilities)`;
-                groupSelect.appendChild(opt);
-            });
+      // [Data Collection] -> Purples / Pinks
+      "Weather Bureau Meteorological Observatory (WBMO)":       { category: "Data",     color: "#7c3aed" },
+      "Weather Service Meteorological Observatory (WSMO)":      { category: "Data",     color: "#8b5cf6" },
+      "Weather Service Contract Meteorological Observatory (WSCMO)": { category: "Data", color: "#a855f7" },
+      "Data Collection Office (DCO)":                           { category: "Data",     color: "#c084fc" }
+    };
 
-            // Populate Facility Type Checkboxes
-            const filterContainer = document.getElementById('facilityTypeFilters');
-            const legendContainer = document.getElementById('legendContainer');
+    // -------------------------------------------------------------
+    // 2. Sample Dataset with Group IDs (Location Lineages)
+    // -------------------------------------------------------------
+    const sampleData = [
+      // Vicksburg, MS Lineage Group (groupId: "vicksburg-ms")
+      {
+        id: "vks-1",
+        groupId: "vicksburg-ms",
+        groupName: "Vicksburg Station Lineage",
+        name: "Vicksburg Signal Service Office",
+        type: "Signal Service Office",
+        lat: 32.3526, lon: -90.8779,
+        startYear: 1871, endYear: 1891,
+        address: "Custom House / Post Office, Vicksburg, MS"
+      },
+      {
+        id: "vks-2",
+        groupId: "vicksburg-ms",
+        groupName: "Vicksburg Station Lineage",
+        name: "Vicksburg Weather Bureau Office",
+        type: "Weather Bureau Office (WBO)",
+        lat: 32.3515, lon: -90.8785,
+        startYear: 1891, endYear: 1965,
+        address: "First National Bank Bldg, Vicksburg, MS"
+      },
+      {
+        id: "vks-3",
+        groupId: "vicksburg-ms",
+        groupName: "Vicksburg Station Lineage",
+        name: "Vicksburg WSO",
+        type: "Weather Service Office (WSO)",
+        lat: 32.3300, lon: -90.8500,
+        startYear: 1965, endYear: 1996,
+        address: "Vicksburg Airport, MS"
+      },
 
-            Object.entries(facilityTypes).forEach(([typeName, config]) => {
-                // Filter Checkbox
-                const filterItem = document.createElement('label');
-                filterItem.className = 'flex items-center justify-between p-2 rounded-lg bg-slate-900/40 border border-slate-700/50 hover:bg-slate-700/30 cursor-pointer transition';
-                filterItem.innerHTML = `
-                    <div class="flex items-center space-x-2.5">
-                        <span class="w-3 h-3 rounded-full" style="background-color: ${config.color}"></span>
-                        <span class="text-xs text-slate-200 font-medium">${typeName}</span>
-                    </div>
-                    <input type="checkbox" value="${typeName}" checked class="type-checkbox rounded bg-slate-800 border-slate-600 text-sky-500 focus:ring-0">
-                `;
-                filterContainer.appendChild(filterItem);
+      // Jackson / JAN WFO Lineage Group (groupId: "jackson-ms")
+      {
+        id: "jan-1",
+        groupId: "jackson-ms",
+        groupName: "Jackson Station Lineage",
+        name: "Jackson Weather Bureau Office",
+        type: "Weather Bureau Office (WBO)",
+        lat: 32.2988, lon: -90.1848,
+        startYear: 1909, endYear: 1963,
+        address: "Old Federal Bldg, Jackson, MS"
+      },
+      {
+        id: "jan-2",
+        groupId: "jackson-ms",
+        groupName: "Jackson Station Lineage",
+        name: "Jackson WSFO",
+        type: "Weather Service Forecast Office (WSFO)",
+        lat: 32.3200, lon: -90.0780,
+        startYear: 1963, endYear: 1998,
+        address: "Allen C. Thompson Field, Jackson, MS"
+      },
+      {
+        id: "jan-3",
+        groupId: "jackson-ms",
+        groupName: "Jackson Station Lineage",
+        name: "Jackson WFO",
+        type: "Weather Forecast Office (WFO)",
+        lat: 32.3210, lon: -90.0770,
+        startYear: 1998, endYear: 2026,
+        address: "E. Metro Pkwy, Flowood / Jackson, MS"
+      }
+    ];
 
-                // Legend Item
-                const legendItem = document.createElement('div');
-                legendItem.className = 'flex items-center space-x-2 bg-slate-900/30 p-1.5 rounded border border-slate-700/40';
-                legendItem.innerHTML = `
-                    <div class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${config.color}"></div>
-                    <span class="text-[11px] text-slate-300 truncate">${typeName}</span>
-                `;
-                legendContainer.appendChild(legendItem);
-            });
-        }
+    // -------------------------------------------------------------
+    // 3. Application State & Map Initialization
+    // -------------------------------------------------------------
+    let activeGroupId = null; // When set, freezes timeline & isolates station group
+    let isPlaying = false;
+    let playInterval = null;
 
-        // Setup Event Listeners
-        function setupEventListeners() {
-            // Slider Event
-            const timeSlider = document.getElementById('timeSlider');
-            timeSlider.addEventListener('input', (e) => {
-                currentYear = parseInt(e.target.value);
-                document.getElementById('currentYearDisplay').textContent = currentYear;
-                document.getElementById('statYearDisplay').textContent = currentYear;
-                updateMapMarkers();
-            });
+    // Initialize Map with ESRI Dark Gray Tiles (NO API KEY REQUIRED)
+    const map = L.map('map', { zoomControl: true }).setView([32.3, -90.5], 8);
 
-            // Play / Pause Animation
-            const playBtn = document.getElementById('playBtn');
-            playBtn.addEventListener('click', togglePlay);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+      maxZoom: 16
+    }).addTo(map);
 
-            // Era Buttons
-            document.querySelectorAll('.era-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    currentYear = parseInt(e.target.dataset.year);
-                    timeSlider.value = currentYear;
-                    document.getElementById('currentYearDisplay').textContent = currentYear;
-                    document.getElementById('statYearDisplay').textContent = currentYear;
-                    updateMapMarkers();
-                });
-            });
+    // Optional Reference Overlay for labels
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '',
+      maxZoom: 16
+    }).addTo(map);
 
-            // Group Select Filter
-            document.getElementById('stationGroupSelect').addEventListener('change', (e) => {
-                selectedGroupFilter = e.target.value;
-                updateMapMarkers();
+    const markerLayerGroup = L.layerGroup().addTo(map);
 
-                // Auto pan to selected group location if single group chosen
-                if (selectedGroupFilter !== 'ALL') {
-                    const group = stationGroups.find(g => g.groupId === selectedGroupFilter);
-                    if (group && group.entries.length > 0) {
-                        const firstEntry = group.entries[0];
-                        map.flyTo([firstEntry.lat, firstEntry.lon], 9, { duration: 1.5 });
-                    }
-                } else {
-                    map.flyTo([37.8, -92.5], 5, { duration: 1.5 });
-                }
-            });
+    // -------------------------------------------------------------
+    // 4. Custom Marker Generation
+    // -------------------------------------------------------------
+    function createCustomIcon(color, isGroupActive = false) {
+      const size = isGroupActive ? 18 : 14;
+      const border = isGroupActive ? '3px solid #ffffff' : '2px solid rgba(255,255,255,0.8)';
+      const shadow = isGroupActive ? '0 0 10px ' + color : '0 2px 4px rgba(0,0,0,0.5)';
 
-            // Type Checkboxes Filter
-            document.querySelectorAll('.type-checkbox').forEach(cb => {
-                cb.addEventListener('change', () => {
-                    enabledTypes = Array.from(document.querySelectorAll('.type-checkbox:checked')).map(c => c.value);
-                    updateMapMarkers();
-                });
-            });
+      return L.divIcon({
+        className: 'nws-marker',
+        html: `<div style="
+          background-color: ${color};
+          width: ${size}px;
+          height: ${size}px;
+          border-radius: 50%;
+          border: ${border};
+          box-shadow: ${shadow};
+        "></div>`,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2]
+      });
+    }
 
-            // Reset All Types Filter Button
-            document.getElementById('selectAllTypes').addEventListener('click', () => {
-                document.querySelectorAll('.type-checkbox').forEach(cb => cb.checked = true);
-                enabledTypes = Object.keys(facilityTypes);
-                updateMapMarkers();
-            });
+    // -------------------------------------------------------------
+    // 5. Dynamic Map Rendering Logic
+    // -------------------------------------------------------------
+    function renderMap() {
+      markerLayerGroup.clearLayers();
+      const currentYear = parseInt(document.getElementById('yearSlider').value);
 
-            // Mobile Sidebar Toggle
-            document.getElementById('toggleSidebarMobile').addEventListener('click', () => {
-                document.getElementById('sidebar').classList.remove('-translate-x-full');
-            });
-            document.getElementById('closeSidebarMobile').addEventListener('click', () => {
-                document.getElementById('sidebar').classList.add('-translate-x-full');
-            });
-
-            // Modal Close Events
-            document.getElementById('closeModal').addEventListener('click', hideModal);
-            document.getElementById('modalCloseBtn').addEventListener('click', hideModal);
-        }
-
-        // Toggle Timeline Auto-Play Loop
-        function togglePlay() {
-            const playBtn = document.getElementById('playBtn');
-            if (isPlaying) {
-                clearInterval(playInterval);
-                playBtn.innerHTML = '<i class="fa-solid fa-play text-sm"></i>';
-                isPlaying = false;
-            } else {
-                playBtn.innerHTML = '<i class="fa-solid fa-pause text-sm"></i>';
-                isPlaying = true;
-                playInterval = setInterval(() => {
-                    const timeSlider = document.getElementById('timeSlider');
-                    let nextYear = parseInt(timeSlider.value) + 1;
-                    if (nextYear > 2026) nextYear = 1870;
-                    timeSlider.value = nextYear;
-                    currentYear = nextYear;
-                    document.getElementById('currentYearDisplay').textContent = currentYear;
-                    document.getElementById('statYearDisplay').textContent = currentYear;
-                    updateMapMarkers();
-                }, 400);
-            }
-        }
-
-        // Create Custom Leaflet DivIcon with colored pins
-        function createCustomMarkerIcon(type) {
-            const config = facilityTypes[type] || { color: '#38bdf8', icon: 'fa-location-dot' };
+      sampleData.forEach(station => {
+        const typeInfo = STATION_TYPES[station.type] || { color: '#94a3b8' };
+        
+        // Mode A: Group Lineage Freeze Mode
+        if (activeGroupId !== null) {
+          if (station.groupId === activeGroupId) {
+            // Plot ALL stations in this group regardless of year
+            const icon = createCustomIcon(typeInfo.color, true);
+            const marker = L.marker([station.lat, station.lon], { icon }).addTo(markerLayerGroup);
             
-            return L.divIcon({
-                className: 'custom-leaflet-marker',
-                html: `
-                    <div style="background-color: ${config.color}" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-900 shadow-lg border-2 border-slate-900 marker-pulse">
-                        <i class="fa-solid ${config.icon} text-xs"></i>
-                    </div>
-                `,
-                iconSize: [32, 32],
-                iconAnchor: [16, 16],
-                popupAnchor: [0, -18]
-            });
-        }
-
-        // Core Filter & Marker Update Function
-        function updateMapMarkers() {
-            markersLayerGroup.clearLayers();
-
-            let activeCount = 0;
-            let totalGroupCount = stationGroups.length;
-
-            stationGroups.forEach(group => {
-                // Check if group matches filter dropdown
-                if (selectedGroupFilter !== 'ALL' && group.groupId !== selectedGroupFilter) return;
-
-                group.entries.forEach(entry => {
-                    // Check if entry was active in selected year
-                    const isActive = currentYear >= entry.startYear && currentYear <= entry.endYear;
-                    // Check if entry facility type is toggled on
-                    const isTypeEnabled = enabledTypes.includes(entry.type);
-
-                    if (isActive && isTypeEnabled) {
-                        activeCount++;
-
-                        const marker = L.marker([entry.lat, entry.lon], {
-                            icon: createCustomMarkerIcon(entry.type)
-                        });
-
-                        // Create Rich Popup
-                        const popupContent = `
-                            <div class="p-2 space-y-2 max-w-xs">
-                                <div class="flex items-center space-x-2 border-b border-slate-700 pb-2">
-                                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${facilityTypes[entry.type]?.color || '#38bdf8'}"></span>
-                                    <span class="text-xs font-semibold uppercase tracking-wider text-sky-400">${entry.type}</span>
-                                </div>
-                                <h3 class="font-bold text-base text-white leading-tight">${entry.name}</h3>
-                                <p class="text-xs text-slate-300"><i class="fa-solid fa-location-dot text-slate-400 mr-1"></i>${entry.address}</p>
-                                <div class="bg-slate-900/80 p-2 rounded text-[11px] text-slate-400 space-y-1">
-                                    <div><strong>Active Years:</strong> ${entry.startYear} – ${entry.endYear}</div>
-                                    <div><strong>Equipment:</strong> ${entry.equipment}</div>
-                                </div>
-                                <button onclick="openStationLineage('${group.groupId}')" class="w-full mt-2 py-1.5 px-3 bg-sky-500 hover:bg-sky-400 text-slate-900 rounded-lg font-semibold text-xs transition flex items-center justify-center space-x-1.5 shadow">
-                                    <i class="fa-solid fa-timeline"></i>
-                                    <span>View Full Group Lineage</span>
-                                </button>
-                            </div>
-                        `;
-
-                        marker.bindPopup(popupContent);
-                        markersLayerGroup.addLayer(marker);
-                    }
-                });
-            });
-
-            // Update UI Stats
-            document.getElementById('statActiveCount').textContent = `${activeCount} facility${activeCount !== 1 ? 'ies' : ''}`;
-            document.getElementById('statTotalGroups').textContent = `${totalGroupCount} groups`;
+            marker.bindPopup(`
+              <div class="popup-title">${station.name}</div>
+              <div class="popup-type" style="color:${typeInfo.color}">${station.type}</div>
+              <div class="popup-dates">Active: ${station.startYear} &ndash; ${station.endYear}</div>
+              <div>${station.address}</div>
+            `);
+          }
+        } 
+        // Mode B: Timeline Year Mode
+        else {
+          if (currentYear >= station.startYear && currentYear <= station.endYear) {
+            const icon = createCustomIcon(typeInfo.color, false);
+            const marker = L.marker([station.lat, station.lon], { icon }).addTo(markerLayerGroup);
             
-            // Calculate progress relative to max possible facilities in dataset
-            const percentage = Math.min(100, Math.round((activeCount / 12) * 100));
-            document.getElementById('statProgressBar').style.width = `${percentage}%`;
+            marker.bindPopup(`
+              <div class="popup-title">${station.name}</div>
+              <div class="popup-type" style="color:${typeInfo.color}">${station.type}</div>
+              <div class="popup-dates">Active: ${station.startYear} &ndash; ${station.endYear}</div>
+              <p style="font-size:0.8rem; margin-bottom:8px;">${station.address}</p>
+              <button class="lineage-btn" onclick="lockGroupLineage('${station.groupId}')">
+                🔒 Freeze Map & View Full Lineage
+              </button>
+            `);
+          }
         }
+      });
+    }
 
-        // Open Lineage Modal Dialog for a Station Group
-        function openStationLineage(groupId) {
-            const group = stationGroups.find(g => g.groupId === groupId);
-            if (!group) return;
+    // -------------------------------------------------------------
+    // 6. Station Lineage Lock Handler
+    // -------------------------------------------------------------
+    window.lockGroupLineage = function(groupId) {
+      activeGroupId = groupId;
+      
+      // Stop animation if playing
+      if (isPlaying) togglePlay();
 
-            document.getElementById('modalStationTitle').textContent = `${group.cityName} Lineage`;
-            document.getElementById('modalStationSubtitle').textContent = `${group.entries.length} historical facility records in this location lineage`;
-            document.getElementById('modalStationDesc').textContent = group.description;
-            document.getElementById('modalStationId').textContent = group.groupId;
+      // Show Banner
+      document.getElementById('freezeBanner').classList.add('active');
 
-            const timelineContainer = document.getElementById('modalTimelineList');
-            timelineContainer.innerHTML = '';
+      // Populate Sidebar Lineage Info
+      const groupStations = sampleData
+        .filter(s => s.groupId === groupId)
+        .sort((a,b) => a.startYear - b.startYear);
 
-            // Sort entries chronologically
-            const sortedEntries = [...group.entries].sort((a, b) => a.startYear - b.startYear);
+      let html = `<h4 style="color:#fff; margin-bottom:8px;">${groupStations[0].groupName}</h4>`;
+      html += `<p style="font-size:0.75rem; margin-bottom:12px;">Displaying all historical iterations for this station lineage across all years.</p>`;
+      
+      groupStations.forEach(s => {
+        const typeInfo = STATION_TYPES[s.type] || { color: '#94a3b8' };
+        html += `
+          <div style="background:#121824; padding:8px; border-radius:4px; margin-bottom:8px; border-left:4px solid ${typeInfo.color}">
+            <div style="font-weight:bold; color:#fff;">${s.name}</div>
+            <div style="font-size:0.75rem; color:${typeInfo.color};">${s.type}</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">${s.startYear} &ndash; ${s.endYear}</div>
+          </div>
+        `;
+      });
 
-            sortedEntries.forEach((entry) => {
-                const isCurrentlyActive = currentYear >= entry.startYear && currentYear <= entry.endYear;
-                const typeConfig = facilityTypes[entry.type] || { color: '#38bdf8' };
+      document.getElementById('groupInfo').innerHTML = html;
+      renderMap();
+    };
 
-                const item = document.createElement('div');
-                item.className = 'relative group';
-                item.innerHTML = `
-                    <!-- Timeline Node Indicator -->
-                    <div class="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-2 border-slate-800" style="background-color: ${typeConfig.color}"></div>
-                    
-                    <div class="bg-slate-900/60 p-4 rounded-xl border ${isCurrentlyActive ? 'border-sky-500 ring-1 ring-sky-500/50' : 'border-slate-700/60'} space-y-2 transition">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-200 border border-slate-700">
-                                ${entry.startYear} – ${entry.endYear}
-                            </span>
-                            ${isCurrentlyActive ? '<span class="text-[10px] font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/30">ACTIVE IN ' + currentYear + '</span>' : ''}
-                        </div>
+    document.getElementById('unfreezeBtn').addEventListener('click', () => {
+      activeGroupId = null;
+      document.getElementById('freezeBanner').classList.remove('active');
+      document.getElementById('groupInfo').innerHTML = 'Select a marker on the map to view facility chronology and history.';
+      renderMap();
+    });
 
-                        <div>
-                            <h4 class="font-bold text-white text-base">${entry.name}</h4>
-                            <div class="text-xs text-sky-400 font-medium">${entry.type}</div>
-                        </div>
+    // -------------------------------------------------------------
+    // 7. Timeline Controls & Legend Generation
+    // -------------------------------------------------------------
+    const yearSlider = document.getElementById('yearSlider');
+    const yearDisplay = document.getElementById('yearDisplay');
+    const playBtn = document.getElementById('playBtn');
 
-                        <p class="text-xs text-slate-300 leading-relaxed">${entry.details}</p>
+    yearSlider.addEventListener('input', (e) => {
+      if (activeGroupId !== null) {
+        // If slider is moved while frozen, auto-unfreeze
+        activeGroupId = null;
+        document.getElementById('freezeBanner').classList.remove('active');
+      }
+      yearDisplay.textContent = e.target.value;
+      renderMap();
+    });
 
-                        <div class="pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-400">
-                            <div><i class="fa-solid fa-map-pin mr-1 text-slate-500"></i>${entry.address}</div>
-                            <div><i class="fa-solid fa-microchip mr-1 text-slate-500"></i>${entry.equipment}</div>
-                        </div>
-                    </div>
-                `;
-                timelineContainer.appendChild(item);
-            });
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      playBtn.textContent = isPlaying ? "Pause" : "Play";
+      
+      if (isPlaying) {
+        playInterval = setInterval(() => {
+          let curr = parseInt(yearSlider.value);
+          if (curr >= parseInt(yearSlider.max)) curr = parseInt(yearSlider.min);
+          else curr++;
+          
+          yearSlider.value = curr;
+          yearDisplay.textContent = curr;
+          renderMap();
+        }, 300);
+      } else {
+        clearInterval(playInterval);
+      }
+    }
+    playBtn.addEventListener('click', togglePlay);
 
-            // Show Modal
-            const modal = document.getElementById('lineageModal');
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            modal.querySelector('div').classList.remove('scale-95');
-            modal.querySelector('div').classList.add('scale-100');
-        }
+    // Build Sidebar Filters / Legend
+    const filterList = document.getElementById('typeFilters');
+    Object.entries(STATION_TYPES).forEach(([typeName, meta]) => {
+      const li = document.createElement('li');
+      li.className = 'filter-item';
+      li.innerHTML = `
+        <span class="filter-label">
+          <span class="color-dot" style="background-color:${meta.color}"></span>
+          ${typeName}
+        </span>
+      `;
+      filterList.appendChild(li);
+    });
 
-        // Hide Modal Dialog
-        function hideModal() {
-            const modal = document.getElementById('lineageModal');
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modal.querySelector('div').classList.remove('scale-100');
-            modal.querySelector('div').classList.add('scale-95');
-        }
-    </script>
+    // Initial Render
+    renderMap();
+  </script>
 </body>
 </html>
