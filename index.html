@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NWS Historical Field Office Mapping Project</title>
+  <title>NWS Historical Office Mapping Project</title>
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -121,7 +121,7 @@
 
   <header>
     <div class="brand">
-      <h1>NWS Field Office Historical Mapper</h1>
+      <h1>NWS Office Historical Locations</h1>
       <p>1870 &ndash; Present Station Chronology</p>
     </div>
 
@@ -188,15 +188,21 @@
       "Weather Bureau Office (WBO)":                           { color: "#f59e0b" },
       "Weather Service Office (WSO)":                          { color: "#fbbf24" },
       "Weather Bureau Forecast Office":                        { color: "#1d4ed8" },
-      "Weather Service Forecast Office (WSFO)":                { color: "#2563eb" }
+      "Weather Service Forecast Office (WSFO)":                { color: "#2563eb" },
+      "Weather Forecast Office (WFO)":                         { color: "#0284c7" }
     };
+
+    // CONUS View Coordinates & Default Zoom
+    const CONUS_CENTER = [39.8283, -98.5795];
+    const CONUS_ZOOM = 4;
 
     let stationData = [];
     let activeGroupId = null;
 
-    // Initialize Map (Esri Dark Gray Basemap)
-    const map = L.map('map', { zoomControl: true }).setView([32.3, -90.5], 7);
+    // Initialize Map centered over Lower 48 States (CONUS)
+    const map = L.map('map', { zoomControl: true }).setView(CONUS_CENTER, CONUS_ZOOM);
 
+    // Esri Dark Gray Basemap
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
       attribution: 'Tiles &copy; Esri',
       maxZoom: 16
@@ -230,7 +236,6 @@
       if (precision === 'exact') {
         svgInner = `<circle cx="${center}" cy="${center}" r="${size/2}" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
       } else if (precision === 'area') {
-        // Triangle pointing up
         const top = center - size/2;
         const bottom = center + size/2;
         const left = center - size/2;
@@ -253,7 +258,6 @@
     function populateDropdown() {
       const dropdown = document.getElementById('groupDropdown');
       
-      // Extract unique groups
       const groupsMap = new Map();
       stationData.forEach(s => {
         if (!groupsMap.has(s.groupId)) {
@@ -261,7 +265,6 @@
         }
       });
 
-      // Sort alphabetically by groupName
       const sortedGroups = Array.from(groupsMap.entries()).sort((a, b) => a[1].localeCompare(b[1]));
 
       sortedGroups.forEach(([groupId, groupName]) => {
@@ -328,7 +331,7 @@
       });
     }
 
-    // Lineage Lock Functions
+    // Lineage Lock & Auto-Zoom Handler
     window.lockGroupLineage = function(groupId) {
       activeGroupId = groupId;
       document.getElementById('groupDropdown').value = groupId;
@@ -338,6 +341,27 @@
         .filter(s => s.groupId === groupId)
         .sort((a,b) => a.startDate.localeCompare(b.startDate));
 
+      renderMap();
+
+      // --- Auto-Zoom to Stations in Lineage ---
+      if (groupStations.length > 0) {
+        const latLngs = groupStations.map(s => [s.lat, s.lon]);
+        
+        if (latLngs.length === 1) {
+          // Single point lineage -> Fly to location
+          map.flyTo(latLngs[0], 12, { duration: 1.2 });
+        } else {
+          // Multi-point lineage -> Fit bounds to display all points
+          const bounds = L.latLngBounds(latLngs);
+          map.flyToBounds(bounds, {
+            padding: [80, 80],
+            maxZoom: 13,
+            duration: 1.2
+          });
+        }
+      }
+
+      // Populate sidebar text
       let html = `<h4 style="color:#fff; margin-bottom:8px;">${groupStations[0].groupName} Lineage</h4>`;
       html += `<p style="font-size:0.75rem; margin-bottom:12px;">Timeline frozen. Displaying all recorded locations across time.</p>`;
 
@@ -353,7 +377,6 @@
       });
 
       document.getElementById('groupInfo').innerHTML = html;
-      renderMap();
     };
 
     function unfreezeLineage() {
@@ -361,18 +384,22 @@
       document.getElementById('groupDropdown').value = "";
       document.getElementById('freezeBanner').classList.remove('active');
       document.getElementById('groupInfo').innerHTML = 'Select a marker on the map or pick a city from the dropdown above to inspect full station lineage.';
+      
       renderMap();
+
+      // Smoothly fly back to national CONUS view
+      map.flyTo(CONUS_CENTER, CONUS_ZOOM, { duration: 1.2 });
     }
 
     document.getElementById('unfreezeBtn').addEventListener('click', unfreezeLineage);
 
-    // Timeline Slider listener
+    // Timeline Slider Listener
     const yearSlider = document.getElementById('yearSlider');
     const yearDisplay = document.getElementById('yearDisplay');
 
     yearSlider.addEventListener('input', (e) => {
       if (activeGroupId !== null) {
-        unfreezeLineage(); // Auto-unlock if user moves timeline
+        unfreezeLineage();
       }
       yearDisplay.textContent = e.target.value;
       renderMap();
