@@ -11,7 +11,7 @@
     "startDate": "1871-9",
     "endDate": "1872-10",
     "address": "Hunt Building, 139 Washington St",
-    "notes": "Office on third floor, northwest corner of the building."
+    "notes": "Office on third floor, northwest corner of the building. Moved to Baum Building in 1872."
   },
   {
     "id": "vks-2",
@@ -25,7 +25,7 @@
     "startDate": "1872-10",
     "endDate": "1885-4",
     "address": "Baum Building, Washington St at Crawford St",
-    "notes": "Office on third floor, southeast corner of the building. Building and office destroyed by fire on 4/21/1885."
+    "notes": "Office on third floor, southeast corner of the building. Building and office destroyed by fire on 4/21/1885. Temporarily moved to U.S. Engineers Building after fire."
   },
   {
     "id": "vks-3",
@@ -39,7 +39,7 @@
     "startDate": "1885-4",
     "endDate": "1885-6",
     "address": "U.S. Engineers Building, Cherry St at China St",
-    "notes": "Temporary quarters following fire at previous location in Baum Building."
+    "notes": "Temporary quarters following fire at previous location in Baum Building. Moved to Hall's Building after."
   },
   {
     "id": "vks-4",
@@ -53,7 +53,7 @@
     "startDate": "1885-6",
     "endDate": "1886-5",
     "address": "Hall's Building, 149 Washington St",
-    "notes": "Office on third floor, east side of the building."
+    "notes": "Office on third floor, east side of the building. Moved back to a rebuilt Baum Building in 1886."
   },
   {
     "id": "vks-5",
@@ -67,7 +67,7 @@
     "startDate": "1886-5",
     "endDate": "1891-6",
     "address": "Baum Building, Washington St at Crawford St",
-    "notes": "Office on third floor, southeast corner of the building. Building rebuilt after 1885 fire."
+    "notes": "Office on third floor, southeast corner of the building. Building rebuilt after 1885 fire. Moved to new government building in 1891."
   },
   {
     "id": "vks-6",
@@ -81,7 +81,7 @@
     "startDate": "1891-7",
     "endDate": "1937-6",
     "address": "Custom House and Post Office, Walnut St at Crawford St",
-    "notes": "Between July 1891-Feb 1898, office on 3rd floor. Between Mar 1898-Oct 1914, office in rooms 215-217 on 2nd floor. Between Oct 1914-Jun 1937, office in rooms 201-203 on 2nd floor."
+    "notes": "Between July 1891-Feb 1898, office on 3rd floor. Between Mar 1898-Oct 1914, office in rooms 215-217 on 2nd floor. Between Oct 1914-Jun 1937, office in rooms 201-203 on 2nd floor. Moved to new Post Office and Courthouse in 1937."
   },
   {
     "id": "vks-7",
@@ -95,7 +95,7 @@
     "startDate": "1937-6",
     "endDate": "1969-4",
     "address": "Post Office and Courthouse, Crawford St at Monroe St",
-    "notes": "Office in rooms 500, 501, and 501-A on 5th floor."
+    "notes": "Office in rooms 500, 501, and 501-A on 5th floor. Closed in 1969."
   },
   {
     "id": "hks-1",
@@ -123,7 +123,7 @@
     "startDate": "1939-6",
     "endDate": "1955-6",
     "address": "Jackson Municipal Airport",
-    "notes": "Office on 2nd floor of new airport administration and terminal building."
+    "notes": "Office on 2nd floor of new airport administration and terminal building. Moved to operations building, just west of the terminal building in 1955."
   },
   {
     "id": "hks-3",
@@ -137,7 +137,7 @@
     "startDate": "1955-6",
     "endDate": "1963-7",
     "address": "Hawkins Field Operations Building",
-    "notes": ""
+    "notes": "WBO moved to new airport in 1963, but radar and upper air functions continued through 1969."
   },
   {
     "id": "hks-4",
@@ -151,10 +151,24 @@
     "startDate": "1963-7",
     "endDate": "1969-3",
     "address": "Hawkins Field Operations Building",
-    "notes": "Radar and upper air observations continued at this location until a radar was installed at the new airport in Rankin County"
+    "notes": "Radar and upper air observations continued at this location until a radar was installed at the new airport in Rankin County in 1969."
   },
   {
     "id": "jan-1",
+    "groupId": "jackson-ms",
+    "groupName": "Jackson, MS",
+    "name": "WBAS Jackson (JAN)",
+    "type": "Weather Bureau Airways Station (WBAS)",
+    "lat": 32.31008362,
+    "lon": -90.07531635,
+    "precision": "exact",
+    "startDate": "1963-7",
+    "endDate": "1968-12",
+    "address": "Jackson Airport Terminal Building",
+    "notes": "Reclassified as WBO in 1969."
+  },
+  {
+    "id": "jan-2",
     "groupId": "jackson-ms",
     "groupName": "Jackson, MS",
     "name": "WBO Jackson (JAN)",
@@ -162,13 +176,13 @@
     "lat": 32.31008362,
     "lon": -90.07531635,
     "precision": "exact",
-    "startDate": "1963-7",
+    "startDate": "1969-1",
     "endDate": "1970-6",
     "address": "Jackson Airport Terminal Building",
-    "notes": ""
+    "notes": "Reclassified as WSO in 1970."
   },
   {
-    "id": "jan-2",
+    "id": "jan-3",
     "groupId": "jackson-ms",
     "groupName": "Jackson, MS",
     "name": "WSO Jackson (JAN)",
@@ -179,10 +193,10 @@
     "startDate": "1970-7",
     "endDate": "1972-3",
     "address": "Jackson Airport Terminal Building",
-    "notes": ""
+    "notes": "Upgraded to WSFO in 1972."
   },
   {
-    "id": "jan-3",
+    "id": "jan-4",
     "groupId": "jackson-ms",
     "groupName": "Jackson, MS",
     "name": "WSFO Jackson (JAN)",
@@ -193,10 +207,10 @@
     "startDate": "1972-4",
     "endDate": "1978-9",
     "address": "Jackson Airport Terminal Building",
-    "notes": ""
+    "notes": "Moved to separate building north of terminal in 1978."
   },
   {
-    "id": "jan-4",
+    "id": "jan-5",
     "groupId": "jackson-ms",
     "groupName": "Jackson, MS",
     "name": "WSFO Jackson (JAN)",
@@ -210,7 +224,7 @@
     "notes": ""
   },
   {
-    "id": "jan-5",
+    "id": "jan-6",
     "groupId": "jackson-ms",
     "groupName": "Jackson, MS",
     "name": "WFO Jackson (JAN)",
@@ -235,7 +249,7 @@
     "startDate": "1882-5",
     "endDate": "1883-6",
     "address": "Agricultural College building",
-    "notes": ""
+    "notes": "Closed in 1883."
   },
   {
     "id": "mei1",
@@ -249,7 +263,7 @@
     "startDate": "1889-8",
     "endDate": "1891-6",
     "address": "Walker & Hall, 2109 1/2 4th St.",
-    "notes": ""
+    "notes": "Reclassified as WBO in 1891."
   },
   {
     "id": "mei2",
@@ -263,7 +277,7 @@
     "startDate": "1891-7",
     "endDate": "1896-8",
     "address": "Walker & Hall, 2109 1/2 4th St.",
-    "notes": ""
+    "notes": "Closed in 1896."
   },
   {
     "id": "mei3",
@@ -275,8 +289,64 @@
     "lon": -88.70042085,
     "precision": "area",
     "startDate": "1898-12",
-    "endDate": "1933-1",
+    "endDate": "1933-10",
     "address": "Post Office, 8th St at 22nd Ave",
-    "notes": ""
+    "notes": "Moved to new Post Office building in 1933."
+  },
+  {
+    "id": "mei4",
+    "groupId": "meridian-ms",
+    "groupName": "Meridian, MS",
+    "name": "WBO Meridian",
+    "type": "Weather Bureau Office (WBO)",
+    "lat": 32.36633342,
+    "lon": -88.69988637,
+    "precision": "exact",
+    "startDate": "1933-11",
+    "endDate": "1948-10",
+    "address": "Post Office Building, 2100 9th St",
+    "notes": "Merged with WBAS at Key Field upon  installation of weighing rain guage at Key Field on 11/1/1948. City office closed."
+  },
+  {
+    "id": "mei5",
+    "groupId": "meridian-ms",
+    "groupName": "Meridian, MS",
+    "name": "WBAS Meridian (MEI)",
+    "type": "Weather Bureau Airways Station (WBAS)",
+    "lat": 32.33389758,
+    "lon": -88.74503523,
+    "precision": "area",
+    "startDate": "1939-07",
+    "endDate": "1968-12",
+    "address": "Key Field",
+    "notes": "Reclassified as WBO in 1969."
+  },
+  {
+    "id": "mei6",
+    "groupId": "meridian-ms",
+    "groupName": "Meridian, MS",
+    "name": "WBO Meridian (MEI)",
+    "type": "Weather Bureau Office (WBO)",
+    "lat": 32.33389758,
+    "lon": -88.74503523,
+    "precision": "area",
+    "startDate": "1969-01",
+    "endDate": "1970-6",
+    "address": "Key Field",
+    "notes": "Reclassified as WSO in 1970."
+  },
+  {
+    "id": "mei7",
+    "groupId": "meridian-ms",
+    "groupName": "Meridian, MS",
+    "name": "WSO Meridian (MEI)",
+    "type": "Weather Service Office (WSO)",
+    "lat": 32.33389758,
+    "lon": -88.74503523,
+    "precision": "area",
+    "startDate": "1970-07",
+    "endDate": "1995-4",
+    "address": "Key Field",
+    "notes": "Closed in 1995."
   }
 ]
