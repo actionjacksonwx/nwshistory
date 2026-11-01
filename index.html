@@ -166,11 +166,11 @@
             <span style="font-size:0.75rem; color:var(--text-muted);">building level</span>
           </li>
           <li class="filter-item">
-            <span class="filter-label"><span class="shape-icon"><svg width="12" height="12"><polygon points="6,1 11,11 1,11" fill="#3b82f6" stroke="#fff" stroke-width="1.5"/></svg></span> General Area</span>
+            <span class="filter-label"><span class="shape-icon"><svg width="12" height="12"><rect x="1" y="1" width="10" height="10" fill="#3b82f6" stroke="#fff" stroke-width="1.5"/></svg></span> General Area</span>
             <span style="font-size:0.75rem; color:var(--text-muted);">property level</span>
           </li>
           <li class="filter-item">
-            <span class="filter-label"><span class="shape-icon"><svg width="12" height="12"><rect x="1" y="1" width="10" height="10" fill="#3b82f6" stroke="#fff" stroke-width="1.5"/></svg></span> Broad Area</span>
+            <span class="filter-label"><span class="shape-icon"><svg width="12" height="12"><circle cx="6" cy="6" r="5" fill="none" stroke="#3b82f6" stroke-width="2"/></svg></span> Broad Area</span>
             <span style="font-size:0.75rem; color:var(--text-muted);">city level</span>
           </li>
         </ul>
@@ -186,7 +186,7 @@
     const STATION_TYPES = {
       "Signal Service Office":                                     { color: "#ff3333" },
       "Weather Bureau Office (WBO)":                             { color: "#ff0000" },
-      "Weather Bureau Airways Station (WBAS)":                   { color: "#ff1a1a" },
+      "Weather Bureau Airways Station (WBAS)":                     { color: "#ff1a1a" },
       "Weather Service Office (WSO)":                            { color: "#e60000" },
       "Weather Bureau Forecast Office":                          { color: "#3333ff" },
       "Weather Service Forecast Office (WSFO)":                    { color: "#1a1aff" },
@@ -252,16 +252,15 @@
 
       let svgInner = '';
       if (precision === 'exact') {
+        // Solid filled circle
         svgInner = `<circle cx="${center}" cy="${center}" r="${size/2}" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
       } else if (precision === 'area') {
-        const top = center - size/2;
-        const bottom = center + size/2;
-        const left = center - size/2;
-        const right = center + size/2;
-        svgInner = `<polygon points="${center},${top} ${right},${bottom} ${left},${bottom}" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
-      } else { // 'city' default to square
+        // Square
         const offset = center - size/2;
         svgInner = `<rect x="${offset}" y="${offset}" width="${size}" height="${size}" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+      } else { 
+        // 'city' default to hollow ring
+        svgInner = `<circle cx="${center}" cy="${center}" r="${size/2}" fill="none" stroke="${color}" stroke-width="${strokeWidth * 1.5}"/>`;
       }
 
       return L.divIcon({
