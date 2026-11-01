@@ -101,8 +101,8 @@
     "id": "hks-1",
     "groupId": "jackson-ms",
     "groupName": "Jackson, MS",
-    "name": "WBAS Jackson",
-    "type": "Weather Bureau Airways Station (WBAS)",
+    "name": "WBO Jackson",
+    "type": "Weather Bureau Office (WBO)",
     "lat": 32.32883865,
     "lon": -90.21574922,
     "precision": "area",
@@ -115,8 +115,8 @@
     "id": "hks-2",
     "groupId": "jackson-ms",
     "groupName": "Jackson, MS",
-    "name": "WBAS Jackson",
-    "type": "Weather Bureau Airways Station (WBAS)",
+    "name": "WBO Jackson",
+    "type": "Weather Bureau Office (WBO)",
     "lat": 32.32898635,
     "lon": -90.21679012,
     "precision": "exact",
@@ -129,8 +129,8 @@
     "id": "hks-3",
     "groupId": "jackson-ms",
     "groupName": "Jackson, MS",
-    "name": "WBAS Jackson (HKS)",
-    "type": "Weather Bureau Airways Station (WBAS)",
+    "name": "WBO Jackson (HKS)",
+    "type": "Weather Bureau Office (WBO)",
     "lat": 32.32885675,
     "lon": -90.21757163,
     "precision": "exact",
@@ -157,32 +157,18 @@
     "id": "jan-1",
     "groupId": "jackson-ms",
     "groupName": "Jackson, MS",
-    "name": "WBAS Jackson (JAN)",
-    "type": "Weather Bureau Airways Station (WBAS)",
-    "lat": 32.31008362,
-    "lon": -90.07531635,
-    "precision": "exact",
-    "startDate": "1963-7",
-    "endDate": "1968-12",
-    "address": "Jackson Airport Terminal Building",
-    "notes": "Reclassified as WBO in 1969."
-  },
-  {
-    "id": "jan-2",
-    "groupId": "jackson-ms",
-    "groupName": "Jackson, MS",
     "name": "WBO Jackson (JAN)",
     "type": "Weather Bureau Office (WBO)",
     "lat": 32.31008362,
     "lon": -90.07531635,
     "precision": "exact",
-    "startDate": "1969-1",
+    "startDate": "1963-7",
     "endDate": "1970-6",
     "address": "Jackson Airport Terminal Building",
     "notes": "Reclassified as WSO in 1970."
   },
   {
-    "id": "jan-3",
+    "id": "jan-2",
     "groupId": "jackson-ms",
     "groupName": "Jackson, MS",
     "name": "WSO Jackson (JAN)",
@@ -196,7 +182,7 @@
     "notes": "Upgraded to WSFO in 1972."
   },
   {
-    "id": "jan-4",
+    "id": "jan-3",
     "groupId": "jackson-ms",
     "groupName": "Jackson, MS",
     "name": "WSFO Jackson (JAN)",
@@ -210,7 +196,7 @@
     "notes": "Moved to separate building north of terminal in 1978."
   },
   {
-    "id": "jan-5",
+    "id": "jan-4",
     "groupId": "jackson-ms",
     "groupName": "Jackson, MS",
     "name": "WSFO Jackson (JAN)",
@@ -224,7 +210,7 @@
     "notes": ""
   },
   {
-    "id": "jan-6",
+    "id": "jan-5",
     "groupId": "jackson-ms",
     "groupName": "Jackson, MS",
     "name": "WFO Jackson (JAN)",
@@ -245,7 +231,7 @@
     "type": "Signal Service Office",
     "lat": 33.45484676,
     "lon": -88.78896344,
-    "precision": "exact",
+    "precision": "area",
     "startDate": "1882-5",
     "endDate": "1883-6",
     "address": "Agricultural College building",
@@ -263,7 +249,7 @@
     "startDate": "1889-8",
     "endDate": "1891-6",
     "address": "Walker & Hall, 2109 1/2 4th St.",
-    "notes": "Reclassified as WBO in 1891."
+    "notes": ""
   },
   {
     "id": "mei2",
@@ -317,9 +303,9 @@
     "lon": -88.74503523,
     "precision": "area",
     "startDate": "1939-07",
-    "endDate": "1968-12",
+    "endDate": "1948-10",
     "address": "Key Field",
-    "notes": "Reclassified as WBO in 1969."
+    "notes": ""
   },
   {
     "id": "mei6",
@@ -330,10 +316,10 @@
     "lat": 32.33389758,
     "lon": -88.74503523,
     "precision": "area",
-    "startDate": "1969-01",
+    "startDate": "1948-11",
     "endDate": "1970-6",
     "address": "Key Field",
-    "notes": "Reclassified as WSO in 1970."
+    "notes": ""
   },
   {
     "id": "mei7",
@@ -343,7 +329,7 @@
     "type": "Weather Service Office (WSO)",
     "lat": 32.33389758,
     "lon": -88.74503523,
-    "precision": "area",
+    "precision": "city",
     "startDate": "1970-07",
     "endDate": "1995-4",
     "address": "Key Field",
@@ -403,7 +389,7 @@
     "startDate": "1891-4",
     "endDate": "1891-6",
     "address": "Public building, 9th St at Greene St",
-    "notes": "Office on 3rd floor. Reclassified as WBO in 1891."
+    "notes": "Office on 3rd floor."
   },
   {
     "id": "ags5",
@@ -431,6 +417,62 @@
     "startDate": "1916-3",
     "endDate": "1949-9",
     "address": "Post Office and Courthouse, Telfair St at Barrett Plaza",
-    "notes": "Office on 3rd floor in rooms 308-312."
+    "notes": "Office on 3rd floor in rooms 308-312. Consolidated at airport in 1949."
+  },
+  {
+    "id": "dnl1",
+    "groupId": "augusta-ga",
+    "groupName": "Augusta, GA",
+    "name": "WBAS Augusta (DNL)",
+    "type": "Weather Bureau Airways Station (WBAS)",
+    "lat": 33.46919784,
+    "lon": -82.03539752,
+    "precision": "area",
+    "startDate": "1944-3",
+    "endDate": "1949-9",
+    "address": "Daniel Field Administration Building",
+    "notes": "Office on 2nd floor"
+  },
+  {
+    "id": "dnl2",
+    "groupId": "augusta-ga",
+    "groupName": "Augusta, GA",
+    "name": "WBO Augusta (DNL)",
+    "type": "Weather Bureau Office (WBO)",
+    "lat": 33.46919784,
+    "lon": -82.03539752,
+    "precision": "area",
+    "startDate": "1949-9",
+    "endDate": "1950-6",
+    "address": "Daniel Field Administration Building",
+    "notes": "Office on 2nd floor. Moved to Bush Field in 1950."
+  },
+  {
+    "id": "ags7",
+    "groupId": "augusta-ga",
+    "groupName": "Augusta, GA",
+    "name": "WBO Augusta (AGS)",
+    "type": "Weather Bureau Office (WBO)",
+    "lat": 33.37171448,
+    "lon": -81.97396374,
+    "precision": "area",
+    "startDate": "1950-7",
+    "endDate": "1970-6",
+    "address": "Bush Field Dept of Commerce Building/Weather Bureau Building",
+    "notes": ""
+  },
+  {
+    "id": "ags8",
+    "groupId": "augusta-ga",
+    "groupName": "Augusta, GA",
+    "name": "WSO Augusta (AGS)",
+    "type": "Weather Service Office (WSO)",
+    "lat": 33.37171448,
+    "lon": -81.97396374,
+    "precision": "exact",
+    "startDate": "1970-7",
+    "endDate": "1995-1",
+    "address": "Bush Field Weather Service Building",
+    "notes": ""
   }
 ]
