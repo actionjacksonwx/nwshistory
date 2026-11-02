@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NWS Radar Historical Locations</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    :root {
+      --bg-dark: #121824;
+      --panel-bg: #1e2638;
+      --accent: #3b82f6;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #334155;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg-dark); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+    /* Top Control Header */
+    header {
+      background: var(--panel-bg);
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 1000;
+    }
+    .brand h1 { font-size: 1.1rem; font-weight: 600; }
+    .brand p { font-size: 0.8rem; color: var(--text-muted); }
+
+    .timeline-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-grow: 1;
+      max-width: 600px;
+      margin: 0 20px;
+    }
+    .year-display {
+      font-size: 1.4rem;
+      font-weight: 700;
+      font-family: monospace;
+      min-width: 65px;
+      color: var(--accent);
+    }
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* Main Container */
+    .main-content { display: flex; flex-grow: 1; position: relative; height: calc(100vh - 61px); }
+    #map { flex-grow: 1; background: #0f172a; height: 100%; }
+
+    /* Sidebar / Overlay UI */
+    .sidebar {
+      width: 340px;
+      background: var(--panel-bg);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 900;
+    }
+    .sidebar-section { padding: 15px; border-bottom: 1px solid var(--border); }
+    .sidebar-section h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 10px; }
+
+    .filter-list { list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; }
+    .filter-item { display: flex; align-items: center; justify-content: space-between; }
+    .filter-label { display: flex; align-items: center; gap: 8px; }
+    
+    /* Shape Legend indicators */
+    .shape-icon { width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; }
+
+    /* Dropdown Styling */
+    select.group-select, .feedback-input {
+      width: 100%;
+      background: var(--bg-dark);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+    select.group-select { cursor: pointer; }
+
+    /* Freeze Mode Banner */
+    .freeze-banner {
+      background: #7c3aed;
+      color: white;
+      padding: 10px 15px;
+      font-size: 0.85rem;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .freeze-banner.active { display: flex; }
+    .unfreeze-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 8px; border-radius: 3px; cursor: pointer; }
+
+    /* Custom Leaflet Marker Hover */
+    .nws-marker { transition: all 0.2s ease; }
+    .nws-marker:hover { transform: scale(1.3); z-index: 1000 !important; }
+
+    /* Popup Styling */
+    .leaflet-popup-content-wrapper { background: var(--panel-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; }
+    .leaflet-popup-tip { background: var(--panel-bg); }
+    .popup-title { font-weight: bold; font-size: 1rem; color: #fff; margin-bottom: 4px; }
+    .popup-type { font-size: 0.8rem; font-weight: 600; color: var(--accent); text-transform: uppercase; margin-bottom: 4px; }
+    .popup-precision { font-size: 0.75rem; color: #f59e0b; margin-bottom: 6px; }
+    .popup-dates { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; }
+    .lineage-btn { width: 100%; background: #3b82f6; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>NWS Radar Historical Locations</h1>
+      <p>Radar Site Chronology</p>
+    </div>
+
+    <div class="timeline-container">
+      <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Year:</span>
+      <input type="range" id="yearSlider" min="1945" max="2026" value="2026" step="1">
+      <div class="year-display" id="yearDisplay">2026</div>
+    </div>
+  </header>
+
+  <div class="freeze-banner" id="freezeBanner">
+    <span>🔒 <strong>Lineage Lock Active:</strong> Timeline frozen to show full radar site history for selected location.</span>
+    <button class="unfreeze-btn" id="unfreezeBtn">Resume Timeline</button>
+  </div>
+
+  <div class="main-content">
+    <div id="map"></div>
+
+    <div class="sidebar">
+      <!-- Site / Group Dropdown Section -->
+      <div class="sidebar-section">
+        <h3>Radar Lineage Selector</h3>
+        <select id="groupDropdown" class="group-select">
+          <option value="">-- View All (Timeline Active) --</option>
+        </select>
+      </div>
+
+      <!-- Station Details / Lineage Breakdown -->
+      <div class="sidebar-section" style="flex-grow:1; overflow-y:auto;">
+        <h3>Radar Site Details</h3>
+        <div id="groupInfo" style="font-size: 0.85rem; color: var(--text-muted);">
+          Select a marker on the map or pick a site from the dropdown above to inspect full radar lineage.
+        </div>
+      </div>
+
+      <!-- Feedback / Contribution Section -->
+      <div class="sidebar-section">
+        <h3>Submit Corrections/Changes</h3>
+        <form action="https://formspree.io/f/xzeekpjn" method="POST" style="font-size: 0.8rem;">
+          <input type="hidden" name="_subject" value="NWS Radar Mapping Project Feedback">
+          <div style="margin-bottom: 6px;">
+            <input type="text" name="station_ref" class="feedback-input" placeholder="Radar Site / City Name" required style="padding:6px;">
+          </div>
+          <div style="margin-bottom: 6px;">
+            <textarea name="message" class="feedback-input" rows="2" placeholder="Provide corrections, sources, or notes..." required style="padding:6px; resize:vertical;"></textarea>
+          </div>
+          <div style="margin-bottom: 6px;">
+            <input type="email" name="email" class="feedback-input" placeholder="Your email (optional)" style="padding:6px;">
+          </div>
+          <button type="submit" style="width: 100%; background: #10b981; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 600;">Submit Feedback</button>
+        </form>
+      </div>
+
+      <!-- Legend Section -->
+      <div class="sidebar-section">
+        <h3>Location Precision Key</h3>
+        <ul class="filter-list">
+          <li class="filter-item">
+            <span class="filter-label"><span class="shape-icon"><svg width="12" height="12"><polygon points="1,1 11,1 6,11" fill="#3b82f6" stroke="#fff" stroke-width="1.5"/></svg></span> Exact Location</span>
+            <span style="font-size:0.75rem; color:var(--text-muted);">tower/building level</span>
+          </li>
+          <li class="filter-item">
+            <span class="filter-label"><span class="shape-icon"><svg width="12" height="12"><circle cx="6" cy="6" r="5" fill="#3b82f6" stroke="#fff" stroke-width="1.5"/></svg></span> General Area</span>
+            <span style="font-size:0.75rem; color:var(--text-muted);">property/compound level</span>
+          </li>
+          <li class="filter-item">
+            <span class="filter-label"><span class="shape-icon"><svg width="12" height="12"><circle cx="6" cy="6" r="5" fill="none" stroke="#3b82f6" stroke-width="2"/></svg></span> Broad Area</span>
+            <span style="font-size:0.75rem; color:var(--text-muted);">city/airport level</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    // Dynamically calculate the current year
+    const currentYear = new Date().getFullYear();
+
+    const yearSlider = document.getElementById('yearSlider');
+    const yearDisplay = document.getElementById('yearDisplay');
+
+    yearSlider.max = currentYear;
+    yearSlider.value = currentYear;
+    yearDisplay.textContent = currentYear;
+
+    // Radar Taxonomy colors
+    const STATION_TYPES = {
+      "WSR-1":           { color: "#ef4444" },
+      "WSR-3":           { color: "#f97316" },
+      "WSR-4":           { color: "#f59e0b" },
+      "Decca":           { color: "#eab308" },
+      "SP1M":            { color: "#84cc16" },
+      "WSR-57":          { color: "#10b981" },
+      "WSR-57M":         { color: "#06b6d4" },
+      "WSR-74C":         { color: "#3b82f6" },
+      "WSR-74S":         { color: "#6366f1" },
+      "WSR-74S Network": { color: "#8b5cf6" },
+      "WSR-88D":         { color: "#ec4899" }
+    };
+
+    // CONUS View Coordinates & Default Zoom
+    const CONUS_CENTER = [39.8283, -98.5795];
+    const CONUS_ZOOM = 5;
+
+    let stationData = [];
+    let activeGroupId = null;
+    let markersMap = {}; 
+
+    // Initialize Map centered over Lower 48 States (CONUS)
+    const map = L.map('map', { zoomControl: true }).setView(CONUS_CENTER, CONUS_ZOOM);
+
+    // Esri Dark Gray Basemap
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri',
+      maxZoom: 17
+    }).addTo(map);
+
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 17
+    }).addTo(map);
+
+    const markerLayerGroup = L.layerGroup().addTo(map);
+
+    // Helper function to format dates
+    function formatDate(dateStr) {
+      if (!dateStr || dateStr === 'present') return dateStr;
+      const parts = dateStr.split('-');
+      if (parts.length !== 2) return dateStr;
+      
+      const year = parts[0];
+      const monthNum = parseInt(parts[1], 10);
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      
+      if (monthNum >= 1 && monthNum <= 12) {
+        return `${months[monthNum - 1]} ${year}`;
+      }
+      return dateStr;
+    }
+
+    // Fetch JSON data from radar.json
+    fetch('radar.json')
+      .then(response => response.json())
+      .then(data => {
+        stationData = data;
+        populateDropdown();
+        renderMap();
+      })
+      .catch(error => console.error('Error loading radar.json:', error));
+
+    // Create SVG Leaflet Marker based on Precision Shape
+    function createShapeIcon(color, precision, isGroupActive = false) {
+      const size = isGroupActive ? 16 : 12;
+      const canvasSize = size + 8;
+      const stroke = isGroupActive ? '#ffffff' : 'rgba(255,255,255,0.85)';
+      const strokeWidth = isGroupActive ? '2.5' : '1.5';
+      const center = canvasSize / 2;
+
+      let svgInner = '';
+      if (precision === 'exact') {
+        const topY = center - size/2;
+        const bottomY = center + size/2;
+        const leftX = center - size/2;
+        const rightX = center + size/2;
+        svgInner = `<polygon points="${leftX},${topY} ${rightX},${topY} ${center},${bottomY}" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+      } else if (precision === 'area') {
+        svgInner = `<circle cx="${center}" cy="${center}" r="${size/2}" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+      } else { 
+        svgInner = `<circle cx="${center}" cy="${center}" r="${size/2}" fill="none" stroke="${color}" stroke-width="${strokeWidth * 1.5}"/>`;
+      }
+
+      return L.divIcon({
+        className: 'nws-marker',
+        html: `<svg width="${canvasSize}" height="${canvasSize}">${svgInner}</svg>`,
+        iconSize: [canvasSize, canvasSize],
+        iconAnchor: [center, center]
+      });
+    }
+
+    // Populate Dropdown
+    function populateDropdown() {
+      const dropdown = document.getElementById('groupDropdown');
+      const groupsMap = new Map();
+      stationData.forEach(s => {
+        if (!groupsMap.has(s.groupId)) {
+          groupsMap.set(s.groupId, s.groupName);
+        }
+      });
+
+      const sortedGroups = Array.from(groupsMap.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+
+      sortedGroups.forEach(([groupId, groupName]) => {
+        const option = document.createElement('option');
+        option.value = groupId;
+        option.textContent = groupName;
+        dropdown.appendChild(option);
+      });
+    }
+
+    document.getElementById('groupDropdown').addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (!val) {
+        unfreezeLineage();
+      } else {
+        lockGroupLineage(val);
+      }
+    });
+
+    // Render Map Logic
+    function renderMap() {
+      markerLayerGroup.clearLayers();
+      markersMap = {};
+      const selectedYear = parseInt(yearSlider.value);
+
+      stationData.forEach(station => {
+        const typeInfo = STATION_TYPES[station.type] || { color: '#94a3b8' };
+        const formattedStart = formatDate(station.startDate);
+        const formattedEnd = station.endDate === 'present' ? 'present' : formatDate(station.endDate);
+        const notesSection = station.notes ? `<div style="font-size:0.8rem; margin-top:4px; color:var(--text-muted); font-style:italic;">${station.notes}</div>` : '';
+
+        if (activeGroupId !== null) {
+          if (station.groupId === activeGroupId) {
+            const icon = createShapeIcon(typeInfo.color, station.precision, true);
+            const marker = L.marker([station.lat, station.lon], { icon }).addTo(markerLayerGroup);
+            markersMap[station.id] = marker;
+            
+            marker.bindPopup(`
+              <div class="popup-title">${station.name}</div>
+              <div class="popup-type">${station.type}</div>
+              <div class="popup-precision">Precision: ${station.precision.toUpperCase()}</div>
+              <div class="popup-dates">Active: ${formattedStart} &ndash; ${formattedEnd}</div>
+              ${notesSection}
+            `);
+          }
+        } else {
+          const startYr = parseInt(station.startDate.substring(0, 4));
+          const endYr = station.endDate === 'present' ? currentYear : parseInt(station.endDate.substring(0, 4));
+
+          if (selectedYear >= startYr && selectedYear <= endYr) {
+            const icon = createShapeIcon(typeInfo.color, station.precision, false);
+            const marker = L.marker([station.lat, station.lon], { icon }).addTo(markerLayerGroup);
+            markersMap[station.id] = marker;
+            
+            marker.bindPopup(`
+              <div class="popup-title">${station.name}</div>
+              <div class="popup-type">${station.type}</div>
+              <div class="popup-precision">Precision: ${station.precision.toUpperCase()}</div>
+              <div class="popup-dates">Active: ${formattedStart} &ndash; ${formattedEnd}</div>
+              ${notesSection}
+              <button class="lineage-btn" style="margin-top:8px;" onclick="lockGroupLineage('${station.groupId}')">
+                🔒 View Full Lineage
+              </button>
+            `);
+          }
+        }
+      });
+    }
+
+    // Precision-Based Zoom Handler when clicking sidebar lineage entries
+    window.focusStation = function(stationId) {
+      const marker = markersMap[stationId];
+      const station = stationData.find(s => s.id === stationId);
+      if (marker && station) {
+        let targetZoom = 12; // default
+        if (station.precision === 'exact') {
+          targetZoom = 16; // Street / tower level detail
+        } else if (station.precision === 'area') {
+          targetZoom = 13; // Property level
+        } else {
+          targetZoom = 11; // City / broad level
+        }
+
+        map.flyTo([station.lat, station.lon], targetZoom, { duration: 1.0 });
+        marker.openPopup();
+      }
+    };
+
+    // Lineage Lock
+    window.lockGroupLineage = function(groupId) {
+      activeGroupId = groupId;
+      document.getElementById('groupDropdown').value = groupId;
+      document.getElementById('freezeBanner').classList.add('active');
+
+      const groupStations = stationData
+        .filter(s => s.groupId === groupId)
+        .sort((a,b) => a.startDate.localeCompare(b.startDate));
+
+      renderMap();
+
+      if (groupStations.length > 0) {
+        const latLngs = groupStations.map(s => [s.lat, s.lon]);
+        if (latLngs.length === 1) {
+          window.focusStation(groupStations[0].id);
+        } else {
+          const bounds = L.latLngBounds(latLngs);
+          map.flyToBounds(bounds, {
+            padding: [80, 80],
+            maxZoom: 14,
+            duration: 1.2
+          });
+        }
+      }
+
+      let html = `<h4 style="color:#fff; margin-bottom:8px;">${groupStations[0].groupName} Lineage</h4>`;
+      html += `<p style="font-size:0.75rem; margin-bottom:12px;">Timeline frozen. Displaying all recorded locations across time.</p>`;
+
+      groupStations.forEach(s => {
+        const typeInfo = STATION_TYPES[s.type] || { color: '#94a3b8' };
+        const fStart = formatDate(s.startDate);
+        const fEnd = s.endDate === 'present' ? 'present' : formatDate(s.endDate);
+        const sideNotes = s.notes ? `<div style="font-size:0.75rem; margin-top:2px; font-style:italic; color:var(--text-muted);">${s.notes}</div>` : '';
+        
+        html += `
+          <div onclick="focusStation('${s.id}')" style="background:#121824; padding:8px; border-radius:4px; margin-bottom:8px; border-left:4px solid ${typeInfo.color}; cursor:pointer; transition: background 0.2s;" onmouseover="this.style.background='#273248'" onmouseout="this.style.background='#121824'">
+            <div style="font-weight:bold; color:#fff;">${s.name}</div>
+            <div style="font-size:0.75rem; color:${typeInfo.color};">${s.type} (${s.precision})</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">${fStart} &ndash; ${fEnd}</div>
+            ${sideNotes}
+          </div>
+        `;
+      });
+
+      document.getElementById('groupInfo').innerHTML = html;
+    };
+
+    function unfreezeLineage() {
+      activeGroupId = null;
+      document.getElementById('groupDropdown').value = "";
+      document.getElementById('freezeBanner').classList.remove('active');
+      document.getElementById('groupInfo').innerHTML = 'Select a marker on the map or pick a site from the dropdown above to inspect full radar lineage.';
+      
+      renderMap();
+      map.flyTo(CONUS_CENTER, CONUS_ZOOM, { duration: 1.2 });
+    }
+
+    document.getElementById('unfreezeBtn').addEventListener('click', unfreezeLineage);
+
+    yearSlider.addEventListener('input', (e) => {
+      if (activeGroupId !== null) {
+        unfreezeLineage();
+      }
+      yearDisplay.textContent = e.target.value;
+      renderMap();
+    });
+  </script>
+</body>
+</html>
