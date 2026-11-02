@@ -1,1 +1,67 @@
-
+[
+  {
+    "id": "hks1",
+    "groupId": "jackson-ms",
+    "groupName": "Jackson, MS",
+    "name": "Hawkins Field (HKS)",
+    "type": "WSR-3",
+    "lat": 32.328889,
+    "lon": -90.217556,
+    "precision": "exact",
+    "startDate": "1959-4",
+    "endDate": "1969-3",
+    "notes": "Adjacent to WBAS Jackson. Remained operational until WSR-57 was installed at new airport in Rankin County"
+  },
+  {
+    "id": "jan1",
+    "groupId": "jackson-ms",
+    "groupName": "Jackson, MS",
+    "name": "Jackson (JAN)",
+    "type": "WSR-57",
+    "lat": 32.313475,
+    "lon": -90.078697,
+    "precision": "exact",
+    "startDate": "1969-3",
+    "endDate": "1978-9",
+    "notes": "Moved next to new weather bureau office building in 1978, exact dates unknown."
+  },
+  {
+    "id": "jan2",
+    "groupId": "jackson-ms",
+    "groupName": "Jackson, MS",
+    "name": "Jackson (JAN)",
+    "type": "WSR-57",
+    "lat": 32.31870494,
+    "lon": -90.08048584,
+    "precision": "exact",
+    "startDate": "1978-10",
+    "endDate": "1995-6",
+    "notes": "Decomissioned 6/21/1995."
+  },
+  {
+    "id": "jan3",
+    "groupId": "jackson-ms",
+    "groupName": "Jackson, MS",
+    "name": "Jackson (JAN)",
+    "type": "WSR-88D",
+    "lat": 32.317711,
+    "lon": -90.079869,
+    "precision": "exact",
+    "startDate": "1993-3",
+    "endDate": "2003-2",
+    "notes": "Commissioned 2/1/1995. Replaced by DGX due to blockage issues, moved to Norman, OK to become test radar."
+  },
+  {
+    "id": "jan4",
+    "groupId": "jackson-ms",
+    "groupName": "Jackson, MS",
+    "name": "Brandon (DGX)",
+    "type": "WSR-88D",
+    "lat": 32.27982698,
+    "lon": -89.98446435,
+    "precision": "exact",
+    "startDate": "2003-2",
+    "endDate": "present",
+    "notes": "Replacement for JAN 88D, previously at Keesler AFB, MS as training radar."
+  }
+]
