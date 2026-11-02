@@ -79,7 +79,7 @@
     .shape-icon { width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; }
 
     /* Dropdown Styling */
-    select.group-select {
+    select.group-select, .feedback-input {
       width: 100%;
       background: var(--bg-dark);
       color: var(--text);
@@ -87,8 +87,8 @@
       padding: 8px;
       border-radius: 4px;
       font-size: 0.85rem;
-      cursor: pointer;
     }
+    select.group-select { cursor: pointer; }
 
     /* Freeze Mode Banner */
     .freeze-banner {
@@ -157,6 +157,24 @@
         </div>
       </div>
 
+      <!-- Feedback / Contribution Section (Spam Safe) -->
+      <div class="sidebar-section">
+        <h3>Contribute / Correct Data</h3>
+        <form action="https://formspree.io/f/xbggprza" method="POST" style="font-size: 0.8rem;">
+          <input type="hidden" name="_subject" value="NWS Mapping Project Feedback">
+          <div style="margin-bottom: 6px;">
+            <input type="text" name="station_ref" class="feedback-input" placeholder="Station / City Name" required style="padding:6px;">
+          </div>
+          <div style="margin-bottom: 6px;">
+            <textarea name="message" class="feedback-input" rows="2" placeholder="Provide corrections, sources, or notes..." required style="padding:6px; resize:vertical;"></textarea>
+          </div>
+          <div style="margin-bottom: 6px;">
+            <input type="email" name="email" class="feedback-input" placeholder="Your email (optional)" style="padding:6px;">
+          </div>
+          <button type="submit" style="width: 100%; background: #10b981; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 600;">Submit Feedback</button>
+        </form>
+      </div>
+
       <!-- Legend Section -->
       <div class="sidebar-section">
         <h3>Location Precision Key</h3>
@@ -184,13 +202,13 @@
   <script>
     // Taxonomy colors
     const STATION_TYPES = {
-      "Signal Service Office":                                     { color: "#ff3333" },
-      "Weather Bureau Office (WBO)":                             { color: "#ff0000" },
-      "Weather Bureau Airways/Airport Station (WBAS)":                     { color: "#ff1a1a" },
-      "Weather Service Office (WSO)":                            { color: "#e60000" },
-      "Weather Bureau Forecast Office":                          { color: "#3333ff" },
-      "Weather Service Forecast Office (WSFO)":                    { color: "#1a1aff" },
-      "Weather Forecast Office (WFO)":                           { color: "#0000ff" }
+      "Signal Service Office":                                       { color: "#ff3333" },
+      "Weather Bureau Office (WBO)":                                 { color: "#ff0000" },
+      "Weather Bureau Airways/Airport Station (WBAS)":               { color: "#ff1a1a" },
+      "Weather Service Office (WSO)":                                { color: "#e60000" },
+      "Weather Bureau Forecast Office":                              { color: "#3333ff" },
+      "Weather Service Forecast Office (WSFO)":                      { color: "#1a1aff" },
+      "Weather Forecast Office (WFO)":                               { color: "#0000ff" }
     };
 
     // CONUS View Coordinates & Default Zoom
@@ -199,7 +217,7 @@
 
     let stationData = [];
     let activeGroupId = null;
-    let markersMap = {}; // Maps station id to its leaflet marker instance
+    let markersMap = {}; 
 
     // Initialize Map centered over Lower 48 States (CONUS)
     const map = L.map('map', { zoomControl: true }).setView(CONUS_CENTER, CONUS_ZOOM);
@@ -207,16 +225,16 @@
     // Esri Dark Gray Basemap
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
       attribution: 'Tiles &copy; Esri',
-      maxZoom: 16
+      maxZoom: 17
     }).addTo(map);
 
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
-      maxZoom: 16
+      maxZoom: 17
     }).addTo(map);
 
     const markerLayerGroup = L.layerGroup().addTo(map);
 
-    // Helper function to format "YYYY-MM" into "Mon Year" (e.g., "1885-01" -> "Jan 1885")
+    // Helper function to format dates
     function formatDate(dateStr) {
       if (!dateStr || dateStr === 'present') return dateStr;
       const parts = dateStr.split('-');
@@ -252,17 +270,14 @@
 
       let svgInner = '';
       if (precision === 'exact') {
-        // Downward pointing triangle (Inverted Triangle) for best precision
         const topY = center - size/2;
         const bottomY = center + size/2;
         const leftX = center - size/2;
         const rightX = center + size/2;
         svgInner = `<polygon points="${leftX},${topY} ${rightX},${topY} ${center},${bottomY}" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
       } else if (precision === 'area') {
-        // Solid filled circle for general area precision
         svgInner = `<circle cx="${center}" cy="${center}" r="${size/2}" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
       } else { 
-        // 'city' default to hollow ring for broad area precision
         svgInner = `<circle cx="${center}" cy="${center}" r="${size/2}" fill="none" stroke="${color}" stroke-width="${strokeWidth * 1.5}"/>`;
       }
 
@@ -274,10 +289,9 @@
       });
     }
 
-    // Populate Alphabetized Dropdown
+    // Populate Dropdown
     function populateDropdown() {
       const dropdown = document.getElementById('groupDropdown');
-      
       const groupsMap = new Map();
       stationData.forEach(s => {
         if (!groupsMap.has(s.groupId)) {
@@ -295,7 +309,6 @@
       });
     }
 
-    // Dropdown change event
     document.getElementById('groupDropdown').addEventListener('change', (e) => {
       const val = e.target.value;
       if (!val) {
@@ -313,14 +326,12 @@
 
       stationData.forEach(station => {
         const typeInfo = STATION_TYPES[station.type] || { color: '#94a3b8' };
-        
         const formattedStart = formatDate(station.startDate);
         const formattedEnd = station.endDate === 'present' ? 'present' : formatDate(station.endDate);
         const notesSection = station.notes ? `<div style="font-size:0.8rem; margin-top:4px; color:var(--text-muted); font-style:italic;">${station.notes}</div>` : '';
         const addressSection = station.address ? `<div>${station.address}</div>` : '';
 
         if (activeGroupId !== null) {
-          // Locked / Freeze Mode for Selected Group
           if (station.groupId === activeGroupId) {
             const icon = createShapeIcon(typeInfo.color, station.precision, true);
             const marker = L.marker([station.lat, station.lon], { icon }).addTo(markerLayerGroup);
@@ -336,7 +347,6 @@
             `);
           }
         } else {
-          // Standard Timeline Mode
           const startYr = parseInt(station.startDate.substring(0, 4));
           const endYr = station.endDate === 'present' ? 2026 : parseInt(station.endDate.substring(0, 4));
 
@@ -361,17 +371,26 @@
       });
     }
 
-    // Function to pan/zoom to a specific station from the sidebar
+    // Precision-Based Zoom Handler when clicking sidebar lineage entries
     window.focusStation = function(stationId) {
       const marker = markersMap[stationId];
       const station = stationData.find(s => s.id === stationId);
       if (marker && station) {
-        map.flyTo([station.lat, station.lon], 13, { duration: 1.0 });
+        let targetZoom = 12; // default
+        if (station.precision === 'exact') {
+          targetZoom = 16; // Street / building level detail
+        } else if (station.precision === 'area') {
+          targetZoom = 13; // Property / neighborhood level
+        } else {
+          targetZoom = 11; // City level / broad area
+        }
+
+        map.flyTo([station.lat, station.lon], targetZoom, { duration: 1.0 });
         marker.openPopup();
       }
     };
 
-    // Lineage Lock & Auto-Zoom Handler
+    // Lineage Lock
     window.lockGroupLineage = function(groupId) {
       activeGroupId = groupId;
       document.getElementById('groupDropdown').value = groupId;
@@ -383,25 +402,20 @@
 
       renderMap();
 
-      // --- Auto-Zoom to Stations in Lineage ---
       if (groupStations.length > 0) {
         const latLngs = groupStations.map(s => [s.lat, s.lon]);
-        
         if (latLngs.length === 1) {
-          // Single point lineage -> Fly to location
-          map.flyTo(latLngs[0], 12, { duration: 1.2 });
+          window.focusStation(groupStations[0].id);
         } else {
-          // Multi-point lineage -> Fit bounds to display all points
           const bounds = L.latLngBounds(latLngs);
           map.flyToBounds(bounds, {
             padding: [80, 80],
-            maxZoom: 13,
+            maxZoom: 14,
             duration: 1.2
           });
         }
       }
 
-      // Populate sidebar text
       let html = `<h4 style="color:#fff; margin-bottom:8px;">${groupStations[0].groupName} Lineage</h4>`;
       html += `<p style="font-size:0.75rem; margin-bottom:12px;">Timeline frozen. Displaying all recorded locations across time.</p>`;
 
@@ -433,14 +447,11 @@
       document.getElementById('groupInfo').innerHTML = 'Select a marker on the map or pick a city from the dropdown above to inspect full station lineage.';
       
       renderMap();
-
-      // Smoothly fly back to national CONUS view
       map.flyTo(CONUS_CENTER, CONUS_ZOOM, { duration: 1.2 });
     }
 
     document.getElementById('unfreezeBtn').addEventListener('click', unfreezeLineage);
 
-    // Timeline Slider Listener
     const yearSlider = document.getElementById('yearSlider');
     const yearDisplay = document.getElementById('yearDisplay');
 
