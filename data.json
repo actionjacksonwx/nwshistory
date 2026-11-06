@@ -11,7 +11,7 @@
     "startDate": "1871-9",
     "endDate": "1872-10",
     "address": "Hunt Building, 139 Washington St",
-    "notes": "Office on third floor, northwest corner of the building. Moved due to poor instrument exposure."
+    "notes": "Office on third floor, northwest corner of the building. Established by Sergeant R.R. Martin."
   },
   {
     "id": "vks-2",
@@ -25,7 +25,7 @@
     "startDate": "1872-10",
     "endDate": "1885-4",
     "address": "Baum Building, Washington St at Crawford St",
-    "notes": "Office on third floor, southeast corner of the building. Building and office destroyed by fire on 4/21/1885. Temporarily moved to U.S. Engineers Building after fire."
+    "notes": "Office on third floor, southeast corner of the building. Moved from previous locaton due to poor instrument exposure. Building and office destroyed by fire on 4/21/1885. Temporarily moved to U.S. Engineers Building after fire."
   },
   {
     "id": "vks-3",
@@ -220,7 +220,7 @@
     "precision": "exact",
     "startDate": "1999-6",
     "endDate": "present",
-    "address": "234 Weather Service Dr",
+    "address": "234 Weather Service Dr, Flowood, MS",
     "notes": ""
   },
   {
@@ -969,7 +969,7 @@
     "id": "box23",
     "groupId": "boston-ma",
     "groupName": "Boston, MA",
-    "name": "WFO Taunton (BOX)",
+    "name": "WFO Boston/Norton (BOX)",
     "type": "Weather Forecast Office (WFO)",
     "lat": 41.95646726,
     "lon": -71.13949253,
@@ -978,5 +978,131 @@
     "endDate": "present",
     "address": "46 Commerce Way, Norton, MA",
     "notes": ""
+  },
+  {
+    "id": "btv1",
+    "groupId": "burlington-vt",
+    "groupName": "Burlington, VT",
+    "name": "Signal Service Burlington",
+    "type": "Signal Service Office",
+    "lat": 44.47561462,
+    "lon": -73.21207434,
+    "precision": "exact",
+    "startDate": "1871-5",
+    "endDate": "1874-7",
+    "address": "U.S. Custom House, Church St at Main St",
+    "notes": "Office on 3rd floor. Established by Sergeant R.R. Martin."
+  },
+  {
+    "id": "btv2",
+    "groupId": "burlington-vt",
+    "groupName": "Burlington, VT",
+    "name": "Signal Service Burlington",
+    "type": "Signal Service Office",
+    "lat": 44.47812257,
+    "lon": -73.21243512,
+    "precision": "exact",
+    "startDate": "1874-8",
+    "endDate": "1878-12",
+    "address": "Fisher's Block, Bank St at Church St",
+    "notes": ""
+  },
+  {
+    "id": "btv3",
+    "groupId": "burlington-vt",
+    "groupName": "Burlington, VT",
+    "name": "Signal Service Burlington",
+    "type": "Signal Service Office",
+    "lat": 44.47800714,
+    "lon": -73.2128846,
+    "precision": "exact",
+    "startDate": "1878-12",
+    "endDate": "1883-6",
+    "address": "Howard Opera House Block, Bank St at Church St",
+    "notes": "Station discontinued 6/15/1883."
+  },
+  {
+    "id": "btv4",
+    "groupId": "burlington-vt",
+    "groupName": "Burlington, VT",
+    "name": "WBO Burlington",
+    "type": "Weather Bureau Office (WBO)",
+    "lat": 44.47473968,
+    "lon": -73.19604932,
+    "precision": "exact",
+    "startDate": "1906-3",
+    "endDate": "1943-6",
+    "address": "91 Williston Rd",
+    "notes": "Built on land given by the University of Vermont and State Agricultural College. Address later became 601 Main St"
+  },
+  {
+    "id": "btv5",
+    "groupId": "burlington-vt",
+    "groupName": "Burlington, VT",
+    "name": "WBO Burlington (BTV)",
+    "type": "Weather Bureau Office (WBO/WBAS)",
+    "lat": 44.46476993,
+    "lon": -73.15299167,
+    "precision": "exact",
+    "startDate": "1943-6",
+    "endDate": "1950-2",
+    "address": "Burlington Municipal Airport Administration Building",
+    "notes": "USWB functions moved to the airport 6/4/1943 at 2 PM"
+  },
+  {
+    "id": "btv6",
+    "groupId": "burlington-vt",
+    "groupName": "Burlington, VT",
+    "name": "WBO Burlington (BTV)",
+    "type": "Weather Bureau Office (WBO/WBAS)",
+    "lat": 44.46911937,
+    "lon": -73.15471427,
+    "precision": "exact",
+    "startDate": "1950-2",
+    "endDate": "1970-6",
+    "address": "Burlington Municipal Airport New Administration Building",
+    "notes": "Office on 2nd floor, occupying three rooms. Burlington International Airport beginning Apr 1969"
+  },
+  {
+    "id": "btv7",
+    "groupId": "burlington-vt",
+    "groupName": "Burlington, VT",
+    "name": "WSO Burlington (BTV)",
+    "type": "Weather Service Office (WSO)",
+    "lat": 44.46911937,
+    "lon": -73.15471427,
+    "precision": "exact",
+    "startDate": "1970-7",
+    "endDate": "1973-7",
+    "address": "Burlington International Airport Administration Building",
+    "notes": "Office on 2nd floor, occupying three rooms."
+  },
+  {
+    "id": "btv8",
+    "groupId": "burlington-vt",
+    "groupName": "Burlington, VT",
+    "name": "WSO Burlington (BTV)",
+    "type": "Weather Service Office (WSO)",
+    "lat": 44.46922237,
+    "lon": -73.15484233,
+    "precision": "exact",
+    "startDate": "1973-7",
+    "endDate": "1999-5",
+    "address": "Burlington International Airport Terminal Building",
+    "notes": "Office on 2nd floor. Office significantly expanded in July 1995 in preparation for upgrade to WFO."
+  },
+  {
+    "id": "btv9",
+    "groupId": "burlington-vt",
+    "groupName": "Burlington, VT",
+    "name": "WFO Burlington (BTV)",
+    "type": "Weather Forecast Office (WFO)",
+    "lat": 44.46922237,
+    "lon": -73.15484233,
+    "precision": "exact",
+    "startDate": "1999-5",
+    "endDate": "present",
+    "address": "Burlington International Airport Terminal Building",
+    "notes": "Office on 2nd floor."
   }
 ]
