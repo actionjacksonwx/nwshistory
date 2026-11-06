@@ -24,36 +24,87 @@
     /* Top Control Header */
     header {
       background: var(--panel-bg);
-      padding: 12px 20px;
+      padding: 10px 20px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 15px;
       z-index: 1000;
     }
-    .brand h1 { font-size: 1.1rem; font-weight: 600; }
-    .brand p { font-size: 0.8rem; color: var(--text-muted); }
+    .brand h1 { font-size: 1.05rem; font-weight: 600; white-space: nowrap; }
+    .brand p { font-size: 0.75rem; color: var(--text-muted); }
+    .brand a.nav-link { color: var(--accent); text-decoration: none; font-weight: 500; }
+    .brand a.nav-link:hover { text-decoration: underline; }
 
     .timeline-container {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 12px;
       flex-grow: 1;
-      max-width: 600px;
-      margin: 0 20px;
+      max-width: 480px;
+      margin: 0 10px;
+    }
+    .year-era-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-width: 130px;
     }
     .year-display {
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       font-weight: 700;
       font-family: monospace;
-      min-width: 65px;
       color: var(--accent);
+      line-height: 1.1;
+    }
+    .era-display {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
     }
     input[type=range] {
       width: 100%;
       accent-color: var(--accent);
       cursor: pointer;
     }
+
+    /* Header Feedback Bar */
+    .header-feedback {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .header-feedback input,
+    .header-feedback textarea {
+      background: var(--bg-dark);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-family: inherit;
+    }
+    .header-feedback input:focus,
+    .header-feedback textarea:focus {
+      outline: 1px solid var(--accent);
+      border-color: var(--accent);
+    }
+    .header-feedback button {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .header-feedback button:hover { background: #059669; }
 
     /* Main Container */
     .main-content { display: flex; flex-grow: 1; position: relative; height: calc(100vh - 61px); }
@@ -122,14 +173,26 @@
   <header>
     <div class="brand">
       <h1>NWS Office Historical Locations</h1>
-      <p>1870 &ndash; Present Station Chronology</p>
+      <p>1870 &ndash; Present Station Chronology &bull; <a href="https://actionjacksonwx.github.io/nwshistory/radar.html" class="nav-link" target="_blank" rel="noopener noreferrer">Switch to Radar History &rarr;</a></p>
     </div>
 
     <div class="timeline-container">
       <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Year:</span>
       <input type="range" id="yearSlider" min="1870" step="1">
-      <div class="year-display" id="yearDisplay"></div>
+      <div class="year-era-wrapper">
+        <div class="year-display" id="yearDisplay"></div>
+        <div class="era-display" id="eraDisplay"></div>
+      </div>
     </div>
+
+    <!-- Submit Corrections/Changes moved to Top Bar -->
+    <form class="header-feedback" action="https://formspree.io/f/xbggprza" method="POST" title="Submit Corrections / Changes">
+      <input type="hidden" name="_subject" value="NWS Mapping Project Feedback">
+      <input type="text" name="station_ref" placeholder="Station / City" required style="width: 110px;">
+      <input type="text" name="message" placeholder="Corrections / notes..." required style="width: 150px;">
+      <input type="email" name="email" placeholder="Email (required)" required style="width: 125px;">
+      <button type="submit">Submit</button>
+    </form>
   </header>
 
   <div class="freeze-banner" id="freezeBanner">
@@ -155,24 +218,6 @@
         <div id="groupInfo" style="font-size: 0.85rem; color: var(--text-muted);">
           Select a marker on the map or pick a city from the dropdown above to inspect full station lineage.
         </div>
-      </div>
-
-      <!-- Feedback / Contribution Section (Spam Safe) -->
-      <div class="sidebar-section">
-        <h3>Submit Corrections/Changes</h3>
-        <form action="https://formspree.io/f/xbggprza" method="POST" style="font-size: 0.8rem;">
-          <input type="hidden" name="_subject" value="NWS Mapping Project Feedback">
-          <div style="margin-bottom: 6px;">
-            <input type="text" name="station_ref" class="feedback-input" placeholder="Station / City Name" required style="padding:6px;">
-          </div>
-          <div style="margin-bottom: 6px;">
-            <textarea name="message" class="feedback-input" rows="2" placeholder="Provide corrections, sources, or notes..." required style="padding:6px; resize:vertical;"></textarea>
-          </div>
-          <div style="margin-bottom: 6px;">
-            <input type="email" name="email" class="feedback-input" placeholder="Your email (optional)" style="padding:6px;">
-          </div>
-          <button type="submit" style="width: 100%; background: #10b981; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 600;">Submit Feedback</button>
-        </form>
       </div>
 
       <!-- Legend Section -->
@@ -205,10 +250,22 @@
 
     const yearSlider = document.getElementById('yearSlider');
     const yearDisplay = document.getElementById('yearDisplay');
+    const eraDisplay = document.getElementById('eraDisplay');
+
+    function getEraName(year) {
+      if (year < 1891) return "Signal Service Era";
+      if (year <= 1969) return "Weather Bureau Era";
+      return "NWS Era";
+    }
+
+    function updateTimelineDisplay(year) {
+      yearDisplay.textContent = year;
+      eraDisplay.textContent = getEraName(year);
+    }
 
     yearSlider.max = currentYear;
     yearSlider.value = currentYear;
-    yearDisplay.textContent = currentYear;
+    updateTimelineDisplay(currentYear);
 
     // Taxonomy colors
     const STATION_TYPES = {
@@ -468,7 +525,7 @@
       if (activeGroupId !== null) {
         unfreezeLineage();
       }
-      yearDisplay.textContent = e.target.value;
+      updateTimelineDisplay(e.target.value);
       renderMap();
     });
   </script>
