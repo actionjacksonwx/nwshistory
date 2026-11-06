@@ -62,6 +62,32 @@
     "precision": "exact",
     "startDate": "2003-2",
     "endDate": "present",
-    "notes": "Replacement for JAN 88D, previously at Keesler AFB, MS as training radar."
+    "notes": "Replacement for KJAN 88D, previously at Keesler AFB, MS as training radar."
+  },
+  {
+    "id": "btv1",
+    "groupId": "burlington-vt",
+    "groupName": "Burlington, VT",
+    "name": "Burlington (BTV)",
+    "type": "WSR-74C",
+    "lat": 44.465565,
+    "lon": -73.15471694,
+    "precision": "exact",
+    "startDate": "1978-6",
+    "endDate": "1998-1",
+    "notes": "Decomissioned 1/29/1998."
+  },
+  {
+    "id": "btv2",
+    "groupId": "burlington-vt",
+    "groupName": "Burlington, VT",
+    "name": "Burlington (CCX)",
+    "type": "WSR-88D",
+    "lat": 44.5110209,
+    "lon": -73.16642747,
+    "precision": "exact",
+    "startDate": "1996-8",
+    "endDate": "present",
+    "notes": "Located at Camp Johnson. ColChester(X)"
   }
 ]
