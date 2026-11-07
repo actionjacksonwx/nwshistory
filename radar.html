@@ -498,7 +498,10 @@
         html += `
           <div onclick="focusStation('${s.id}')" style="background:#121824; padding:8px; border-radius:4px; margin-bottom:8px; border-left:4px solid ${typeInfo.color}; cursor:pointer; transition: background 0.2s;" onmouseover="this.style.background='#273248'" onmouseout="this.style.background='#121824'">
             <div style="font-weight:bold; color:#fff;">${s.name}</div>
-            <div style="font-size:0.75rem; color:${typeInfo.color};">${s.type} (${s.precision})</div>
+            <div style="font-size:0.75rem; color:#fff; display:flex; align-items:center; gap:6px;">
+              <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:${typeInfo.color}; flex-shrink:0;"></span>
+              <span>${s.type} (${s.precision})</span>
+            </div>
             <div style="font-size:0.75rem; color:var(--text-muted);">${fStart} &ndash; ${fEnd}</div>
             ${sideNotes}
           </div>
