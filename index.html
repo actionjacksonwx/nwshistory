@@ -177,6 +177,9 @@
     /* Custom Leaflet Marker Hover */
     .nws-marker { transition: all 0.2s ease; }
     .nws-marker:hover { transform: scale(1.3); z-index: 1000 !important; }
+    .leaflet-marker-icon.nws-marker svg:has(polygon) {
+      transform-origin: 50% 75%;
+    }
 
     /* Popup Styling */
     .leaflet-popup-content-wrapper { background: var(--panel-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; }
@@ -367,12 +370,17 @@
       const center = canvasSize / 2;
 
       let svgInner = '';
+      let anchor = [center, center];
+      let popupAnchor = [0, -center];
+
       if (precision === 'exact') {
         const topY = center - size/2;
         const bottomY = center + size/2;
         const leftX = center - size/2;
         const rightX = center + size/2;
         svgInner = `<polygon points="${leftX},${topY} ${rightX},${topY} ${center},${bottomY}" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+        anchor = [center, bottomY];
+        popupAnchor = [0, -size];
       } else if (precision === 'area') {
         svgInner = `<circle cx="${center}" cy="${center}" r="${size/2}" fill="${color}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
       } else { 
@@ -383,7 +391,8 @@
         className: 'nws-marker',
         html: `<svg width="${canvasSize}" height="${canvasSize}">${svgInner}</svg>`,
         iconSize: [canvasSize, canvasSize],
-        iconAnchor: [center, center]
+        iconAnchor: anchor,
+        popupAnchor: popupAnchor
       });
     }
 
