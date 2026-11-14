@@ -351,6 +351,15 @@
       return dateStr;
     }
 
+    // Helper to convert "YYYY-MM" or "YYYY" into a comparable numeric value (e.g., 197006)
+    function parseDateValue(dateStr) {
+      if (!dateStr) return 0;
+      const parts = dateStr.split('-');
+      const year = parseInt(parts[0], 10) || 0;
+      const month = parts[1] ? parseInt(parts[1], 10) : 0;
+      return year * 100 + month;
+    }
+
     // Fetch JSON data
     fetch('data.json')
       .then(response => response.json())
@@ -505,7 +514,14 @@
 
       const groupStations = stationData
         .filter(s => s.groupId === groupId)
-        .sort((a,b) => a.startDate.localeCompare(b.startDate));
+        .sort((a, b) => {
+          const startDiff = parseDateValue(a.startDate) - parseDateValue(b.startDate);
+          if (startDiff !== 0) return startDiff;
+
+          const endA = a.endDate === 'present' ? 999999 : parseDateValue(a.endDate);
+          const endB = b.endDate === 'present' ? 999999 : parseDateValue(b.endDate);
+          return endA - endB;
+        });
 
       renderMap();
 
